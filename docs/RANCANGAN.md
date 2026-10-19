@@ -1,15 +1,21 @@
 # Rancangan Aplikasi Perpustakaan Digital — SD Muhammadiyah 01 Kukusan
 
-Draf 1, Oktober 2026. Disusun setelah memeriksa repo `nitoe/sarpras` (README, RANCANGAN, DEPLOY, ANTIREGRESI, `package.json`, `firestore.rules.sarpras`) dan `nitoe/SDM01Penilaian` (`firestore.rules`). Repo `nitoe/perpustakaan` masih kosong; dokumen ini adalah isi pertamanya.
+Draf 2, Oktober 2026 (draf 1 + keputusan pemilik aplikasi). Disusun setelah memeriksa repo `nitoe/sarpras` (README, RANCANGAN, DEPLOY, ANTIREGRESI, `package.json`, `firestore.rules.sarpras`) dan `nitoe/SDM01Penilaian` (`firestore.rules`). Repo `nitoe/perpustakaan` masih kosong; dokumen ini adalah isi pertamanya.
 
-Status: rancangan belum dikunci. Daftar pertanyaan ada di bagian 12. Setiap pertanyaan sudah diberi jawaban bawaan (rekomendasi), jadi cukup dibalas "ikuti rekomendasi" bila setuju.
+Status: tahap 1-3 selesai (rancangan, kerangka aplikasi, aturan Firestore siap tempel). Keputusan yang sudah diambil:
+- Database memakai project Firebase yang sama dengan Penilaian dan Sarpras.
+- Akun perpustakaan tidak membuat akun baru: cukup menambah field `peranPerpus` pada `users/{uid}` yang sudah ada.
+- Akun siswa baru dibuat kelak, bukan sekarang.
+- Project Firebase sudah memakai paket berbayar (Blaze), sehingga Cloud Storage tersedia.
+- Ide tambahan (jurnal baca, katalog publik, reservasi, stock opname, pojok baca kelas) disetujui.
+Pertanyaan yang masih terbuka ada di bagian 12.
 
 ## 1. Keputusan utama (ringkas)
 
 | Hal | Keputusan | Alasan singkat |
 | --- | --- | --- |
 | Frontend | **Tetap Vite + React 19 + TypeScript + Tailwind CSS v4** (versi sama dengan Sarpras) | Komponen, tampilan, dan cara kerja bisa disalin dari Sarpras/Penilaian; tidak perlu server sendiri |
-| Data dan login | **Firebase project yang sama** (`sdm01kukusan-2e735`): Authentication + Firestore | Akun guru yang sama, tanpa akun baru; sudah dipakai Penilaian dan Sarpras |
+| Data dan login | **Firebase project yang sama** (`sdm01kukusan-2e735`): Authentication + Firestore | Akun yang sama, tanpa akun baru; sudah dipakai Penilaian dan Sarpras. Project sudah Blaze |
 | Koleksi Firestore | Semua berawalan **`perpus_`** | Pola sama dengan `sarpras_`; tidak bentrok dengan data lain |
 | Penayangan | **Firebase Hosting (situs ketiga)**; Hostinger hanya untuk DNS | Sama persis dengan `penilaian.` dan `sarpras.`; lihat bagian 6 untuk alternatif Hostinger penuh |
 | Alamat | `perpustakaan.sdmuhammadiyah01kks.sch.id` | Usulan; bisa diganti (mis. `perpus.`) |
@@ -35,11 +41,11 @@ Mengikuti pola Sarpras: peran dicek di **Firestore security rules**, bukan hanya
 | pimpinan | Kepala sekolah, Wakasek | Lihat dashboard dan laporan |
 | guru | Semua jenis guru | Cari katalog, baca koleksi digital, lihat pinjaman sendiri; usulan buku (fase 2) |
 
-Peran diberikan lewat field **`peranPerpus`** pada `users/{uid}` (hanya admin yang bisa mengisi; aturan `users` di Penilaian sudah melarang pemilik akun mengubahnya). Bila kosong: admin Penilaian = admin, semua jenis guru = guru.
+**Cara memberi akses (tanpa akun baru):** buka Firestore → `users/{uid}` orang tersebut → tambahkan field teks `peranPerpus` berisi `pustakawan`, `pimpinan`, `guru`, atau `admin`. Hanya admin yang bisa mengisinya (aturan `users` di Penilaian melarang pemilik akun mengubahnya). Bila kosong: admin Penilaian = admin perpustakaan, semua jenis guru = guru. Akun yang tidak punya field `role` sama sekali (mis. petugas TU) tetap bisa diberi akses hanya dengan field ini.
 
-**Siswa tidak punya akun.** Siswa dilayani lewat kartu anggota (QR/barcode berisi NIS) yang dipindai pustakawan. Alasannya: siswa SD tidak punya akun di aplikasi mana pun saat ini, dan membuat akun untuk ratusan anak menambah beban data pribadi serta pengelolaan sandi. Siswa yang meminjam dikenali dari koleksi `siswa` (ID dokumen = NIS) yang sudah ada di Penilaian.
+**Siswa belum punya akun (untuk saat ini).** Siswa dilayani lewat kartu anggota (QR/barcode berisi NIS) yang dipindai pustakawan, dan dikenali dari koleksi `siswa` (ID dokumen = NIS) yang sudah ada di Penilaian. Rancangan sudah disiapkan untuk akun siswa kelak: peminjaman mencatat siswa lewat NIS, bukan lewat uid, jadi akun siswa nanti cukup dihubungkan ke NIS-nya (peran `siswa` ditambahkan di `peranPerpus()` dan `peran.ts`) tanpa mengubah data yang sudah tercatat.
 
-**Catatan penting:** aturan `siswa` di Penilaian hanya mengizinkan baca roster untuk `isGuru()`. Jadi akun pustakawan harus punya peran guru-jenis apa pun di Penilaian (guru, guru_tahsin_tahfizh, guru_akademik) atau admin. Bila pustakawan adalah TU tanpa peran guru, ada dua jalan: beri peran `guru` di Penilaian, atau ubah aturan `siswa` (diputuskan nanti, di tahap aturan).
+**Perubahan kecil di Penilaian:** aturan `siswa` di Penilaian hanya mengizinkan baca roster untuk `isGuru()`. Supaya pustakawan non-guru (mis. TU) cukup diberi field `peranPerpus`, dua baris di blok `siswa` diubah (Bagian C di `firestore.rules.perpustakaan`) sehingga pustakawan juga boleh membaca data dasar siswa. Biodata sensitif di `identitas_siswa` tidak tersentuh.
 
 Orang tua: tidak ada akses di fase 1. Fase 3 bisa menampilkan pinjaman anak sendiri memakai `anakSaya()` yang sudah ada.
 
@@ -72,9 +78,10 @@ Orang tua: tidak ada akses di fase 1. Fase 3 bisa menampilkan pinjaman anak send
 | `perpus_buku` | judul, pengarang, penerbit, tahun, isbn, kategoriId, klasifikasi, bahasa, jenjangBaca, sinopsis, coverId, jenis (`cetak` / `digital` / `keduanya`), tautanDigital, formatDigital, publik (true/false), eksemplarTotal, eksemplarTersedia |
 | `perpus_eksemplar` | **ID dokumen = kode eksemplar** (`PRP-000123`), bukuId, judul (salinan), rak, kondisi, status (`tersedia` / `dipinjam` / `hilang` / `dihapus`), tahunMasuk, sumber |
 | `perpus_kategori` | kode, nama |
-| `perpus_peminjaman` | eksemplarId, bukuId, judul (salinan), peminjam {tipe `siswa`/`guru`, id, nama, kelas}, tglPinjam, jatuhTempo, tglKembali, status (`dipinjam` / `dikembalikan`), jumlahPerpanjang, kondisiKembali, petugasUid, catatan |
-| `perpus_kunjungan` | tanggal, waktu, pengunjung {tipe, id, nama, kelas}, keperluan |
-| `perpus_foto` | sampul terkompres (WebP kecil, base64) — pola sama dengan `sarpras_foto` |
+| `perpus_anggota` | anggota non-siswa: nama, jenis (`guru` / `karyawan` / `kelas`), aktif. Siswa tidak dicatat di sini; mereka dikenali dari `siswa` (ID = NIS) |
+| `perpus_peminjaman` | eksemplarId, bukuId, judul (salinan), peminjam {tipe `siswa`/`anggota`, id (NIS atau ID anggota), nama, kelas}, tglPinjam, jatuhTempo, tglKembali, status (`dipinjam` / `dikembalikan`), jumlahPerpanjang, kondisiKembali, petugasUid, catatan |
+| `perpus_kunjungan` | tanggal, waktu, pengunjung {tipe `siswa`/`anggota`, id, nama, kelas}, keperluan |
+| `perpus_foto` | sampul terkompres (JPEG kecil, base64, maks 120.000 karakter) — pola sama dengan `sarpras_foto` |
 | `perpus_config` | dokumen `aturan`: lama pinjam, maksimal buku per siswa/guru, jumlah perpanjangan |
 | `perpus_usulan`, `perpus_reservasi`, `perpus_jurnal` | fase 2 dan 3 |
 | `perpus_log` | waktu, pengguna, tindakan |
@@ -85,9 +92,9 @@ Prinsip rancangan data, demi kuota gratis dan kecepatan:
 - **Pinjam dan kembali = satu `writeBatch`** (buat/ubah peminjaman + ubah status eksemplar + ubah `eksemplarTersedia`), supaya tidak ada keadaan setengah jadi. Aturan Firestore memeriksa bahwa ketiganya berubah bersama.
 - **Katalog di-cache di peramban** (persistent cache Firestore) agar pencarian tidak membaca ulang ratusan dokumen tiap hari.
 - Per transaksi pinjam, bacaannya hanya sekitar 3-5 dokumen (siswa, eksemplar, pinjaman aktif siswa).
-- Kuota harian Spark dibagi tiga aplikasi; angka persisnya dicek di Firebase Console sebelum peluncuran.
+- Tiga aplikasi memakai satu project, jadi pemakaian dibagi bersama. Pada Blaze kuota gratis harian tetap berlaku dan kelebihannya baru ditagih; pantau di Firebase Console.
 
-Foto sampul: Cloud Storage for Firebase kini mensyaratkan paket Blaze (perlu kartu), sehingga sampul dikecilkan di peramban lalu disimpan di `perpus_foto`, sama seperti Sarpras. Dicek ulang di konsol sebelum diputuskan.
+Sampul buku: karena project sudah Blaze, Cloud Storage tersedia, tetapi sampul tetap disimpan kecil di `perpus_foto` (sama seperti Sarpras) supaya tidak perlu menambah `storage.rules` di Penilaian untuk fitur yang sederhana. Cloud Storage dipakai nanti untuk berkas e-book (bagian 7). Pada paket Blaze, pasang pemberitahuan anggaran (budget alert) di Google Cloud Console agar biaya tak terduga langsung terlihat.
 
 ## 6. Penayangan
 
@@ -102,15 +109,15 @@ Foto sampul: Cloud Storage for Firebase kini mensyaratkan paket Blaze (perlu kar
 
 ## 7. Berkas koleksi digital
 
-Aplikasi hanya menyimpan **tautan** ke berkas. Pilihan tempat berkas:
+Aplikasi menyimpan **tautan** ke berkas. Pilihan tempat berkas:
 
 | Pilihan | Catatan |
 | --- | --- |
 | Buku Sekolah Elektronik Kemendikdasmen, Google Drive/YouTube, atau situs lain | Paling mudah, tanpa biaya; cocok untuk fase 1. Periksa hak cipta sebelum membagikan |
 | Hostinger (File Manager/SFTP, mis. folder di subdomain `berkas.`) | Ruang disk sudah ada di paket hosting; tautan stabil; perlu diunggah manual |
-| Firebase Storage | Butuh paket Blaze; ditunda |
+| Firebase Storage | Tersedia (project sudah Blaze). Cocok untuk unggah PDF langsung dari aplikasi; butuh `storage.rules` yang ditempel di repo Penilaian (pola sama dengan firestore.rules). Dikerjakan di tahap koleksi digital |
 
-**Rekomendasi:** mulai dengan tautan (baris 1), tambah Hostinger bila ada berkas milik sendiri (buku karya guru/siswa, modul ajar). Berkas berhak cipta tidak boleh bertanda publik.
+**Rekomendasi:** tahap koleksi digital dimulai dengan tautan (baris 1) dan unggah ke Firebase Storage untuk berkas milik sendiri (buku karya guru/siswa, modul ajar); Hostinger tidak diperlukan. Berkas berhak cipta tidak boleh bertanda publik.
 
 ## 8. Aturan Firestore
 
@@ -119,7 +126,8 @@ Sama dengan cara Sarpras: `firestore.rules.perpustakaan` di repo ini berisi Bagi
 Garis besar:
 - `peranPerpus()` meniru `peranSarpras()`; `perpusStaf()` = admin, pustakawan, pimpinan, guru.
 - Baca katalog: staf. Tulis katalog/eksemplar: admin dan pustakawan.
-- Peminjaman: dibuat/diubah hanya oleh admin dan pustakawan; tidak ada hapus; data siswa hanya terbaca staf.
+- Peminjaman: dibuat/diubah hanya oleh admin dan pustakawan, dan wajib satu batch dengan perubahan status eksemplar; tidak ada hapus; data siswa hanya terbaca staf.
+- `siswa` (Bagian C): pustakawan non-guru boleh membaca data dasar siswa.
 - Katalog publik (fase 2): `allow read: if resource.data.publik == true || perpusStaf()`; kueri wajib memakai `where('publik','==',true)`.
 - Log: staf menulis, admin membaca, tidak bisa diubah.
 
@@ -153,9 +161,9 @@ perpustakaan/
 
 ## 11. Tahapan
 
-1. **Rancangan dikunci** (dokumen ini).
-2. **Kerangka aplikasi**: Vite + React + TS + Tailwind v4 disalin dari pola Sarpras, login Firebase, peran, menu, situs Hosting dan subdomain.
-3. **Aturan Firestore**: gabungkan dengan aturan Penilaian; uji sebelum deploy.
+1. **Rancangan dikunci** (dokumen ini) — selesai.
+2. **Kerangka aplikasi**: Vite + React + TS + Tailwind v4 disalin dari pola Sarpras, login Firebase, peran, menu — selesai (lolos `tsc`, build, dan lint). Situs Hosting dan subdomain dipasang mengikuti `docs/DEPLOY.md`.
+3. **Aturan Firestore**: `firestore.rules.perpustakaan` siap — tinggal ditempel ke Penilaian dan diuji sebelum deploy.
 4. **Katalog, kategori, eksemplar, impor Excel, cetak label.**
 5. **Sirkulasi** (pinjam, kembali, perpanjang, terlambat).
 6. **Kunjungan, dashboard, laporan.**
@@ -167,15 +175,15 @@ Persiapan data awal (daftar buku dalam template Excel) berjalan paralel sejak ta
 
 Cara kerja pengiriman kode: berkas kecil dikirim langsung ke GitHub (commit ke `main`); bila banyak atau besar, dikirim sebagai arsip zip berstruktur sama dengan repo untuk di-push manual. Yang dikirim hanya berkas yang berubah atau baru.
 
-## 12. Keputusan yang masih terbuka (dengan rekomendasi)
+## 12. Keputusan
 
-1. **Prioritas**: pengelolaan buku cetak (sirkulasi) atau koleksi digital dulu? *Rekomendasi: keduanya masuk fase 1, sirkulasi dikerjakan lebih dulu.*
-2. **Siapa admin/pustakawan** dan apakah akunnya sudah ada di Penilaian (dengan peran guru)? *Rekomendasi: pustakawan memakai akun Penilaian yang sudah ada.*
-3. **Data awal**: berapa kira-kira jumlah judul dan eksemplar, dan sudah ada buku induk/Excel? *Menentukan seberapa penting impor Excel.*
-4. **Aturan pinjam**: lama pinjam, maksimal buku per siswa dan guru, apakah ada denda? *Rekomendasi: 7 hari, siswa 2 buku, guru 5 buku, perpanjang 1 kali, tanpa denda; bisa diubah di `perpus_config/aturan`.*
-5. **Siswa login?** *Rekomendasi: tidak; dilayani lewat kartu anggota. Katalog publik di fase 2.*
-6. **Tempat berkas e-book**: tautan dulu, atau ada berkas milik sendiri untuk diunggah ke Hostinger?
-7. **Alamat**: `perpustakaan.` atau `perpus.`?
-8. **DNS** `sdmuhammadiyah01kks.sch.id` dikelola di hPanel Hostinger?
-9. **Perangkat**: ada pemindai barcode USB dan printer untuk label? *Tanpa pemindai, kode diketik manual atau dipindai kamera (menyusul).*
-10. **Paket Firebase**: project masih Spark (gratis), atau sudah Blaze? *Memengaruhi pilihan penyimpanan berkas dan batas kuota.*
+**Sudah diputuskan:** database satu project dengan Penilaian dan Sarpras; akun perpustakaan lewat field `peranPerpus`; akun siswa kelak; paket Blaze; ide tambahan disetujui.
+
+**Masih terbuka (ada jawaban bawaan; bila tidak dijawab, bawaan dipakai):**
+1. **Prioritas**: *keduanya fase 1, sirkulasi lebih dulu.*
+2. **Siapa admin/pustakawan** (akunnya cukup diberi `peranPerpus`).
+3. **Data awal**: perkiraan jumlah judul dan eksemplar, dan apakah sudah ada buku induk/Excel? *Menentukan seberapa penting impor Excel.*
+4. **Aturan pinjam**: *7 hari, siswa 2 buku, guru/karyawan 5 buku, perpanjang 1 kali, tanpa denda* (bisa diubah di `perpus_config/aturan`).
+5. **Alamat**: `perpustakaan.` atau `perpus.`? *Bawaan: `perpustakaan.`*
+6. **DNS** `sdmuhammadiyah01kks.sch.id` dikelola di hPanel Hostinger?
+7. **Perangkat**: ada pemindai barcode USB dan printer untuk label? *Tanpa pemindai, kode diketik manual atau dipindai kamera (menyusul).*
