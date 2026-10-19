@@ -19,11 +19,9 @@ Salin nilai dari `.env` Sarpras/Penilaian ke `.env` di repo ini.
 Firebase Console → Authentication → Settings → Authorized domains → tambahkan
 `perpustakaan.sdmuhammadiyah01kks.sch.id` (dan `sdm01-perpustakaan.web.app` bila belum ada).
 
-## 5. Tempel aturan Firestore (di repo SDM01Penilaian)
-Buka `firestore.rules.perpustakaan` dan ikuti petunjuk di bagian atasnya:
-- **Bagian A** (fungsi) → tempel setelah fungsi-fungsi Sarpras (`sarprasStaf()`).
-- **Bagian B** (blok `match`) → tempel sebelum "Default: tolak semuanya".
-- **Bagian C** → ubah dua baris pada blok `match /siswa/{id}`.
+## 5. Aturan Firestore (di repo SDM01Penilaian)
+Aturan perpustakaan sudah digabung ke `firestore.rules` di repo SDM01Penilaian (satu berkas untuk semua aplikasi). `firestore.rules.perpustakaan` di repo ini adalah sumbernya: bila blok `perpus_*` di sana berubah, samakan blok yang sama di `firestore.rules` Penilaian (jangan menempel ulang seluruh berkas).
+Versi 0.2.0 mengubah satu blok: `perpus_config` (pustakawan boleh menaikkan penghitung `penomoran`). Tanpa perubahan ini, tombol Simpan pada buku dengan eksemplar akan ditolak.
 
 Lalu di repo SDM01Penilaian: ujilah dulu (mis. dengan Firebase Emulator atau Rules Playground di konsol), baru `npm run deploy:rules`.
 Jangan men-deploy rules dari repo perpustakaan (lihat ANTIREGRESI.md butir 1).

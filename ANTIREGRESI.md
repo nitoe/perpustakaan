@@ -11,3 +11,8 @@ Aturan agar perbaikan tidak rusak lagi. Tambahkan di bawah; jangan menghapus ent
 7. **ID eksemplar = kode di label.** Jangan mengganti ID dokumen `perpus_eksemplar`; label yang sudah dicetak akan tidak terbaca.
 8. **Jangan membaca seluruh `perpus_peminjaman`.** Koleksinya terus bertambah. Selalu pakai kueri (status, peminjam, rentang tanggal) atau `getCountFromServer`.
 9. **Berkas berhak cipta tidak boleh bertanda `publik`.**
+10. **Kode eksemplar hanya dari `pesanNomor()`** (src/lib/penomoran.ts, transaksi atas `perpus_config/penomoran`). Jangan membuat kode dengan menghitung dokumen atau memakai tanggal: dua petugas bersamaan bisa menimpa eksemplar yang sama. Penghitung tidak boleh turun (dijaga rules).
+11. **Tautan yang dibuka dari data harus lewat `tautanAman()`** (src/lib/katalog.ts): hanya http/https. Jangan memasang `href` dari data pengguna secara langsung.
+12. **Penghitung buku (`eksemplarTotal`, `eksemplarTersedia`) hanya diubah dalam batch yang sama dengan eksemplarnya** (`increment`), lewat fungsi di src/lib/katalog.ts. Arti: total = eksemplar yang belum dikeluarkan; tersedia = berstatus `tersedia`.
+13. **Barcode label dibuat src/lib/code128.ts** (Code 128 set B) dan sudah diuji terbaca. Jangan mengubah tabel polanya; bila diubah, uji ulang dengan pembaca barcode.
+14. **Impor CSV: judul yang sama dilewati sebagai duplikat.** Bila impor terhenti di tengah, mengulang dengan berkas yang sama aman (yang sudah masuk dilewati).

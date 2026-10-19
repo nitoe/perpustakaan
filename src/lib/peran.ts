@@ -24,3 +24,8 @@ export function peranDari(profil: AppUser | null): PeranPerpus | null {
   if (profil.role && ROLE_GURU.includes(profil.role)) return 'guru'
   return null
 }
+
+/** Admin dan pustakawan boleh mengelola koleksi (selaras dengan perpusPustakawan() di rules). */
+export function bisaKelola(peran: PeranPerpus | null): boolean {
+  return peran === 'admin' || peran === 'pustakawan'
+}

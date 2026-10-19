@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore, initializeFirestore } from 'firebase/firestore'
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
 
 /** Konfigurasi dibaca dari .env (lihat .env.example). Project sama dengan aplikasi Penilaian. */
 const firebaseConfig = {
@@ -18,8 +18,13 @@ const app = isNewApp ? initializeApp(firebaseConfig) : getApps()[0]!
 
 export const auth = getAuth(app)
 // ignoreUndefinedProperties: field kosong tidak membuat setDoc gagal. Hanya boleh dipanggil sekali.
+// Cache lokal persisten (IndexedDB): katalog yang sudah dimuat tidak dibaca ulang penuh tiap sesi,
+// sehingga hemat kuota baca bersama Penilaian dan Sarpras.
 export const db = isNewApp
-  ? initializeFirestore(app, { ignoreUndefinedProperties: true })
+  ? initializeFirestore(app, {
+      ignoreUndefinedProperties: true,
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    })
   : getFirestore(app)
 
 export const isFirebaseConfigured =

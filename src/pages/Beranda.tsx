@@ -77,7 +77,7 @@ export default function Beranda() {
             </div>
           </div>
           <div className="mt-4">
-            <Notice>Modul katalog, koleksi digital, dan sirkulasi sedang disiapkan.</Notice>
+            <Notice>Katalog, kategori, impor, dan label sudah tersedia. Sirkulasi (pinjam/kembali) dan kunjungan sedang disiapkan.</Notice>
           </div>
         </>
       ) : (

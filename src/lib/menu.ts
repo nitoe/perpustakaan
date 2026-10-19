@@ -14,7 +14,10 @@ const KELOLA: PeranPerpus[] = ['admin', 'pustakawan']
 
 export const MENU: MenuItem[] = [
   { path: '/', label: 'Beranda', untuk: SEMUA, aktif: true },
-  { path: '/katalog', label: 'Katalog', untuk: SEMUA, aktif: false },
+  { path: '/katalog', label: 'Katalog', untuk: SEMUA, aktif: true },
+  { path: '/kategori', label: 'Kategori', untuk: KELOLA, aktif: true },
+  { path: '/impor', label: 'Impor', untuk: KELOLA, aktif: true },
+  { path: '/label', label: 'Label', untuk: KELOLA, aktif: true },
   { path: '/digital', label: 'Digital', untuk: SEMUA, aktif: false },
   { path: '/sirkulasi', label: 'Sirkulasi', untuk: KELOLA, aktif: false },
   { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: false },

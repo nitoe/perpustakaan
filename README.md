@@ -32,8 +32,8 @@ npm run dev
 src/
   components/   Layout, ui
   context/      AuthContext
-  lib/          firebase, auth, peran, menu, tipe, data, foto
-  pages/        Login, Beranda (modul lain menyusul)
+  lib/          firebase, auth, peran, menu, tipe, data, foto, katalog, penomoran, impor, csv, code128
+  pages/        Login, Beranda, Katalog, BukuForm, BukuDetail, Kategori, Impor, Label (sirkulasi, kunjungan menyusul)
   types/
 firestore.rules.perpustakaan   aturan untuk ditempel ke rules Penilaian (tidak di-deploy dari sini)
 ```

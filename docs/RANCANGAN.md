@@ -2,7 +2,7 @@
 
 Draf 2, Oktober 2026 (draf 1 + keputusan pemilik aplikasi). Disusun setelah memeriksa repo `nitoe/sarpras` (README, RANCANGAN, DEPLOY, ANTIREGRESI, `package.json`, `firestore.rules.sarpras`) dan `nitoe/SDM01Penilaian` (`firestore.rules`). Repo `nitoe/perpustakaan` masih kosong; dokumen ini adalah isi pertamanya.
 
-Status: tahap 1-3 selesai (rancangan, kerangka aplikasi, aturan Firestore siap tempel). Keputusan yang sudah diambil:
+Status: tahap 1-4 selesai (rancangan, kerangka aplikasi, aturan Firestore, katalog/eksemplar/impor/label). Keputusan yang sudah diambil:
 - Database memakai project Firebase yang sama dengan Penilaian dan Sarpras.
 - Akun perpustakaan tidak membuat akun baru: cukup menambah field `peranPerpus` pada `users/{uid}` yang sudah ada.
 - Akun siswa baru dibuat kelak, bukan sekarang.
@@ -54,7 +54,7 @@ Orang tua: tidak ada akses di fase 1. Fase 3 bisa menampilkan pinjaman anak send
 **Fase 1 — inti**
 1. **Katalog buku**: judul, pengarang, penerbit, tahun, ISBN, kategori, jenjang baca, sinopsis, sampul. Cari dan saring.
 2. **Eksemplar**: tiap fisik buku punya kode unik (`PRP-000123`), lokasi rak, kondisi. Cetak label barcode/QR.
-3. **Impor Excel/CSV** untuk data awal (template disediakan). Ini yang biasanya paling lama dikerjakan, jadi dimulai paralel sejak tahap 2.
+3. **Impor CSV** (disimpan dari Excel) untuk data awal (templat disediakan). Ini yang biasanya paling lama dikerjakan, jadi dimulai paralel sejak tahap 2.
 4. **Sirkulasi**: pinjam, kembali, perpanjang, daftar terlambat. Pinjam = pindai kartu siswa lalu pindai buku.
 5. **Koleksi digital**: e-book (PDF), video, audio, atau tautan bacaan, dicatat di katalog yang sama dan dibuka lewat tautan (bagian 7).
 6. **Kunjungan**: catat siapa berkunjung (dipindai di pintu atau dipilih per kelas).
@@ -137,7 +137,7 @@ Mengikuti `DESIGN.md` Penilaian: biru `#313083`, font Inter dari `public/fonts`,
 
 Catatan perangkat: banyak siswa/guru memakai ponsel lawas, jadi tampilan ringan, tanpa animasi berat, dan halaman katalog dibuat bertahap (pagination).
 
-**Pemindaian.** Fase 1 memakai kolom input yang terfokus: bekerja dengan pemindai barcode USB (yang bertindak seperti keyboard) dan dengan mengetik kode. Pemindaian lewat kamera ponsel menyusul (butuh pustaka tambahan karena `BarcodeDetector` belum ada di semua peramban). Pencarian data buku otomatis lewat ISBN dari layanan luar tidak dipakai di fase 1 karena CSP hanya `'self'`; gantinya impor Excel.
+**Pemindaian.** Fase 1 memakai kolom input yang terfokus: bekerja dengan pemindai barcode USB (yang bertindak seperti keyboard) dan dengan mengetik kode. Pemindaian lewat kamera ponsel menyusul (butuh pustaka tambahan karena `BarcodeDetector` belum ada di semua peramban). Pencarian data buku otomatis lewat ISBN dari layanan luar tidak dipakai di fase 1 karena CSP hanya `'self'`; gantinya impor CSV.
 
 ## 10. Struktur repo
 
@@ -164,7 +164,7 @@ perpustakaan/
 1. **Rancangan dikunci** (dokumen ini) — selesai.
 2. **Kerangka aplikasi**: Vite + React + TS + Tailwind v4 disalin dari pola Sarpras, login Firebase, peran, menu — selesai (lolos `tsc`, build, dan lint). Situs Hosting dan subdomain dipasang mengikuti `docs/DEPLOY.md`.
 3. **Aturan Firestore**: `firestore.rules.perpustakaan` siap — tinggal ditempel ke Penilaian dan diuji sebelum deploy.
-4. **Katalog, kategori, eksemplar, impor Excel, cetak label.**
+4. **Katalog, kategori, eksemplar, impor CSV (dari Excel), cetak label** — selesai.
 5. **Sirkulasi** (pinjam, kembali, perpanjang, terlambat).
 6. **Kunjungan, dashboard, laporan.**
 7. **Koleksi digital** (tautan, tampilan baca).

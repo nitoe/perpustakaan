@@ -141,9 +141,18 @@
     }
 
     // Pengaturan (dokumen `aturan`): staf membaca, admin mengubah.
+    // Dokumen `penomoran` (penghitung kode eksemplar PRP-000123): pustakawan boleh MENAIKKAN
+    // `terakhir` (hanya field terakhir dan updatedAt; tidak boleh turun) supaya dua petugas
+    // yang menambah buku bersamaan tidak mendapat kode yang sama.
     match /perpus_config/{id} {
       allow read: if perpusStaf();
       allow write: if perpusAdmin();
+      allow create, update: if perpusPustakawan() && id == 'penomoran'
+                            && request.resource.data.keys().hasOnly(['terakhir', 'updatedAt'])
+                            && request.resource.data.terakhir is int
+                            && request.resource.data.terakhir >= 0
+                            && (request.method == 'create'
+                                || request.resource.data.terakhir >= resource.data.terakhir);
     }
 
     // Log perubahan: staf menulis atas namanya, hanya admin membaca, tidak bisa diubah.

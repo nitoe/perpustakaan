@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocFromCache, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import type { AppUser } from '../types/user'
 
@@ -45,7 +45,22 @@ export async function simpanFoto(dataUrl: string): Promise<string> {
   return ref.id
 }
 
+const cacheFoto = new Map<string, string | null>()
+
+/**
+ * Mengambil sampul. Sampul tidak pernah diubah (rules melarang update), jadi aman memakai cache:
+ * memori dulu, lalu cache lokal Firestore, baru server. Hemat kuota baca.
+ */
 export async function ambilFoto(id: string): Promise<string | null> {
-  const snap = await getDoc(doc(db, 'perpus_foto', id))
-  return snap.exists() ? ((snap.data().data as string) ?? null) : null
+  if (cacheFoto.has(id)) return cacheFoto.get(id) ?? null
+  const ref = doc(db, 'perpus_foto', id)
+  let snap
+  try {
+    snap = await getDocFromCache(ref)
+  } catch {
+    snap = await getDoc(ref)
+  }
+  const hasil = snap.exists() ? ((snap.data().data as string) ?? null) : null
+  cacheFoto.set(id, hasil)
+  return hasil
 }
