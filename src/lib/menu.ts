@@ -19,10 +19,10 @@ export const MENU: MenuItem[] = [
   { path: '/impor', label: 'Impor', untuk: KELOLA, aktif: true },
   { path: '/label', label: 'Label', untuk: KELOLA, aktif: true },
   { path: '/sirkulasi', label: 'Sirkulasi', untuk: KELOLA, aktif: true },
+  { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: true },
+  { path: '/laporan', label: 'Laporan', untuk: ['admin', 'pustakawan', 'pimpinan'], aktif: true },
   { path: '/digital', label: 'Digital', untuk: SEMUA, aktif: false },
-  { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: false },
   { path: '/anggota', label: 'Anggota', untuk: KELOLA, aktif: false },
-  { path: '/laporan', label: 'Laporan', untuk: ['admin', 'pustakawan', 'pimpinan'], aktif: false },
 ]
 
 export function menuUntuk(peran: PeranPerpus | null): MenuItem[] {

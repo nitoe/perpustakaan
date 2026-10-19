@@ -11,12 +11,29 @@ import Kategori from './pages/Kategori'
 import Impor from './pages/Impor'
 import Label from './pages/Label'
 import Sirkulasi from './pages/Sirkulasi'
+import Kunjungan from './pages/Kunjungan'
+import Laporan from './pages/Laporan'
 import Penjaga from './pages/Penjaga'
 
 function Wajib({ children }: { children: ReactNode }) {
   const { user, profil, loading } = useAuth()
   if (loading) return <div className="p-8 text-sm text-muted">Memuat…</div>
   if (!user || !profil) return <Navigate to="/masuk" replace />
+  return children
+}
+
+/** Halaman yang boleh dibuka admin, pustakawan, dan pimpinan (laporan). */
+function PenjagaLaporan({ children }: { children: ReactNode }) {
+  const { peran } = useAuth()
+  if (!peran || !['admin', 'pustakawan', 'pimpinan'].includes(peran)) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-800">
+          Halaman laporan hanya untuk admin, pustakawan, dan pimpinan.
+        </p>
+      </div>
+    )
+  }
   return children
 }
 
@@ -40,7 +57,9 @@ export default function App() {
         <Route path="impor" element={<Penjaga><Impor /></Penjaga>} />
         <Route path="label" element={<Penjaga><Label /></Penjaga>} />
         <Route path="sirkulasi" element={<Penjaga><Sirkulasi /></Penjaga>} />
-        {/* Modul menyusul: digital, kunjungan, anggota, laporan (lihat src/lib/menu.ts) */}
+        <Route path="kunjungan" element={<Penjaga><Kunjungan /></Penjaga>} />
+        <Route path="laporan" element={<PenjagaLaporan><Laporan /></PenjagaLaporan>} />
+        {/* Modul menyusul: digital, anggota (lihat src/lib/menu.ts) */}
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

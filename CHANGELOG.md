@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.4.0 — Kunjungan, laporan, beranda
+- Kunjungan: catat per siswa (pindai/ketik NISN) atau per kelas (centang roster); daftar dan rekap kelas hari ini.
+- Laporan: pinjaman terlambat (unduh CSV), buku terpopuler, kunjungan per rentang tanggal + per kelas (unduh CSV).
+- Beranda: jumlah kunjungan hari ini; pintasan Sirkulasi / Kunjungan / Laporan untuk staf.
+- Menu Kunjungan dan Laporan diaktifkan (laporan juga untuk pimpinan).
+
 ## 0.3.0 — Sirkulasi
 - Pinjam: pindai/ketik NISN (kartu anggota) atau ID anggota, lalu kode eksemplar; cek batas pinjaman dan status tersedia.
 - Kembali: pindai kode eksemplar, catat kondisi, opsi tandai hilang.
