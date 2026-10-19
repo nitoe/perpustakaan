@@ -20,30 +20,43 @@ Firebase Console → Authentication → Settings → Authorized domains → tamb
 `perpustakaan.sdmuhammadiyah01kks.sch.id` (dan `sdm01-perpustakaan.web.app` bila belum ada).
 
 ## 5. Aturan Firestore (di repo SDM01Penilaian)
-Aturan perpustakaan sudah digabung ke `firestore.rules` di repo SDM01Penilaian (satu berkas untuk semua aplikasi). `firestore.rules.perpustakaan` di repo ini adalah sumbernya: bila blok `perpus_*` di sana berubah, samakan blok yang sama di `firestore.rules` Penilaian (jangan menempel ulang seluruh berkas).
-Versi 0.2.0 mengubah satu blok: `perpus_config` (pustakawan boleh menaikkan penghitung `penomoran`). Tanpa perubahan ini, tombol Simpan pada buku dengan eksemplar akan ditolak.
+Aturan perpustakaan digabung ke `firestore.rules` di repo SDM01Penilaian (satu berkas untuk semua aplikasi). Sumber rujukan: `firestore.rules.perpustakaan` di repo ini.
 
-Lalu di repo SDM01Penilaian: ujilah dulu (mis. dengan Firebase Emulator atau Rules Playground di konsol), baru `npm run deploy:rules`.
-Jangan men-deploy rules dari repo perpustakaan (lihat ANTIREGRESI.md butir 1).
+Versi penting:
+- Pustakawan boleh menaikkan `perpus_config/penomoran` (tanpa ini, simpan buku+eksemplar ditolak).
+- Pustakawan boleh **membaca** data dasar `siswa` (untuk NISN / pinjam / kunjungan).
 
-## 6. Deploy pertama
+Lalu di repo SDM01Penilaian: uji dulu, baru `npm run deploy:rules`.  
+**Jangan** men-deploy rules dari repo perpustakaan.
+
+## 6. Indeks Firestore
+Di `firestore.indexes.json` repo Penilaian, pastikan ada (lalu `firebase deploy --only firestore:indexes`):
+
+- `perpus_peminjaman`: `peminjam.id` Asc + `status` Asc  
+- `perpus_peminjaman`: `eksemplarId` Asc + `status` Asc  
+
+Tunggu status **Enabled** di Console sebelum uji sirkulasi penuh.
+
+## 7. Deploy aplikasi
 ```bash
 npm install
 npm run deploy
 ```
-Hasil sementara ada di `https://sdm01-perpustakaan.web.app`.
+Hasil sementara: `https://sdm01-perpustakaan.web.app`.
 
-## 7. Domain khusus
-Firebase Console → Hosting → situs `sdm01-perpustakaan` → Add custom domain → `perpustakaan.sdmuhammadiyah01kks.sch.id`. Masukkan catatan DNS (TXT/A atau CNAME) yang ditampilkan ke DNS domain (hPanel Hostinger → Domains → DNS Zone, bila DNS dikelola di sana). Sertifikat HTTPS dibuat otomatis, biasanya dalam beberapa jam.
+## 8. Domain khusus
+Firebase Console → Hosting → situs `sdm01-perpustakaan` → Add custom domain → `perpustakaan.sdmuhammadiyah01kks.sch.id`. Catatan DNS di hPanel Hostinger. Sertifikat HTTPS biasanya aktif dalam beberapa jam.
 
-## 8. Beri peran perpustakaan
-Tanpa membuat akun baru. Admin Penilaian otomatis menjadi Admin Perpustakaan, dan semua guru otomatis berperan "guru". Untuk pustakawan atau pimpinan: Firebase Console → Firestore → `users/{uid}` → tambahkan field **`peranPerpus`** (tipe string) berisi `pustakawan` atau `pimpinan`. Pengguna perlu masuk ulang.
+## 9. Beri peran perpustakaan
+Tanpa akun baru. Admin Penilaian = Admin Perpustakaan; guru otomatis peran "guru".  
+Pustakawan/pimpinan: Firestore → `users/{uid}` → field **`peranPerpus`** = `pustakawan` atau `pimpinan`. Pengguna perlu masuk ulang.
 
-Akun yang belum punya dokumen `users/{uid}` perlu dibuat dulu lewat halaman admin Penilaian.
+## 10. Anggaran (Blaze)
+Google Cloud Console → Billing → Budgets & alerts — pasang pemberitahuan anggaran.
 
-## 9. Anggaran (paket Blaze)
-Project sudah Blaze. Di Google Cloud Console → Billing → Budgets & alerts, pasang pemberitahuan anggaran supaya pemakaian di luar kuota gratis langsung terlihat.
+## 11. Uji coba
+Ikuti daftar di [UJI_COBA.md](UJI_COBA.md) sebelum mengumumkan ke seluruh guru.
 
 ## Catatan
-- Login di `perpustakaan.` terpisah dari `penilaian.` dan `sarpras.`: pengguna perlu masuk sekali di tiap alamat (akun dan kata sandinya sama).
-- Domain `penilaian.`, `sarpras.`, dan portal tidak terpengaruh.
+- Login di `perpustakaan.` terpisah dari `penilaian.` / `sarpras.` (akun sama, sesi berbeda).
+- Lookup ISBN memakai Open Library (jaringan keluar dari peramban); judul Indonesia mungkin perlu dilengkapi manual.

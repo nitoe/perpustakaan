@@ -1,13 +1,24 @@
 # Perpustakaan — SD Muhammadiyah 01 Kukusan
 
-Aplikasi perpustakaan digital sekolah: katalog buku, koleksi digital, eksemplar, peminjaman, kunjungan.
+Aplikasi perpustakaan digital sekolah: katalog, koleksi digital, eksemplar, peminjaman, kunjungan, laporan, anggota.
 
-Frontend: **Vite + React 19 + TypeScript + Tailwind CSS v4**
+Frontend: **Vite + React 19 + TypeScript + Tailwind CSS v4**  
 Backend: **Firebase** (Authentication + Firestore + Hosting), project `sdm01kukusan-2e735` (sama dengan Penilaian dan Sarpras)
 
 URL tujuan: `https://perpustakaan.sdmuhammadiyah01kks.sch.id`
 
-Rancangan: [docs/RANCANGAN.md](docs/RANCANGAN.md) · Model data: [docs/DATA_MODEL.md](docs/DATA_MODEL.md) · Pemasangan: [docs/DEPLOY.md](docs/DEPLOY.md)
+| Dokumen | Isi |
+|---------|-----|
+| [docs/RANCANGAN.md](docs/RANCANGAN.md) | Rancangan & fase |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Model data Firestore |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Pemasangan Hosting & rules |
+| [docs/UJI_COBA.md](docs/UJI_COBA.md) | Daftar uji fase 1 |
+| [CHANGELOG.md](CHANGELOG.md) | Riwayat versi |
+
+## Status
+
+**Fase 1 (inti) selesai di kode** (katalog → sirkulasi → kunjungan → digital → anggota → pengaturan).  
+Tahap berikutnya: **uji coba** bersama pustakawan/guru ([docs/UJI_COBA.md](docs/UJI_COBA.md)), lalu peluncuran.
 
 ## Menjalankan di komputer
 
@@ -26,18 +37,21 @@ npm run dev
 | `npm run lint` | Periksa kode (oxlint) |
 | `npm run deploy` | Build + deploy ke situs Hosting `sdm01-perpustakaan` |
 
-## Struktur
+## Modul
 
-```
-src/
-  components/   Layout, ui
-  context/      AuthContext
-  lib/          firebase, auth, peran, menu, tipe, data, foto, katalog, penomoran, impor, csv, code128
-  pages/        Login, Beranda, Katalog, BukuForm, BukuDetail, Kategori, Impor, Label (sirkulasi, kunjungan menyusul)
-  types/
-firestore.rules.perpustakaan   aturan untuk ditempel ke rules Penilaian (tidak di-deploy dari sini)
-```
+| Menu | Siapa | Fungsi |
+|------|--------|--------|
+| Katalog | Semua staf | Cari, detail, tambah/ubah buku & eksemplar |
+| Digital | Semua staf | Koleksi digital + buka tautan |
+| Kategori / Impor / Label | Admin, pustakawan | Master data, CSV, cetak barcode |
+| Sirkulasi | Admin, pustakawan | Pinjam, kembali, perpanjang |
+| Kunjungan | Admin, pustakawan | Catat pengunjung (NISN / kelas) |
+| Anggota | Admin, pustakawan | Peminjam non-siswa |
+| Laporan | Admin, pustakawan, pimpinan | Terlambat, populer, kunjungan |
+| Pengaturan | Semua (aturan pinjam: admin) | Akun, DDC, aturan |
 
 ## Memberi akses
 
 Tanpa akun baru: di Firestore, dokumen `users/{uid}` diberi field teks `peranPerpus` = `pustakawan`, `pimpinan`, `guru`, atau `admin`. Admin Penilaian otomatis admin perpustakaan; semua jenis guru otomatis `guru`.
+
+Siswa dilayani lewat **NISN** (koleksi `siswa` Penilaian), bukan akun login.
