@@ -1,28 +1,19 @@
 # CHANGELOG
 
-## 0.8.0 — Katalog publik (fase 2)
-- Halaman `/publik` tanpa login: cari buku yang ditandai `publik`, detail, buka tautan digital, lihat ketersediaan cetak.
-- Login: tautan ke katalog publik untuk siswa/orang tua.
-- Rules: `perpus_foto` boleh dibaca siapa saja (sampul di katalog publik). `perpus_buku` tetap hanya item `publik == true` untuk non-staf.
-- Kueri publik wajib `where('publik','==',true)`.
+## 0.9.0 — Fase 2 lengkap
+- **Reservasi**: antrian buku (siswa/anggota), status antrian → siap → diambil / batal.
+- **Usulan**: guru/staf ajukan judul; pustakawan setujui/tolak.
+- **Stock opname**: sesi inventarisasi, pindai kode eksemplar, daftar hasil.
+- **Kartu anggota**: cetak kartu per kelas (nama, kelas, NISN).
+- **Katalog publik** (`/publik`): tanpa login, hanya `publik == true`.
+- Rules: `perpus_reservasi`, `perpus_usulan`, `perpus_opname`, `perpus_opname_item`; `perpus_foto` baca publik.
 
-## 0.7.1 — Dokumen uji coba fase 1
-- `docs/UJI_COBA.md`, README & DEPLOY diperbarui.
-
-## 0.7.0 — Pengaturan & bantuan input buku
-- Pengaturan: profil, sandi, aturan pinjam (admin), DDC, bantuan.
-- Form buku: Cari ISBN/judul Open Library; datalist DDC + 2X0–2X9.
-
+## 0.8.0 — Katalog publik
+## 0.7.1 — Dokumen uji coba
+## 0.7.0 — Pengaturan & ISBN lookup
 ## 0.6.0 — Anggota
-
-## 0.5.0 — Koleksi digital
-
-## 0.4.1 — Kunjungan NISN/nama/kelas
-
-## 0.4.0 — Kunjungan, laporan, beranda
-
+## 0.5.0 — Digital
+## 0.4.x — Kunjungan & laporan
 ## 0.3.0 — Sirkulasi
-
-## 0.2.0 — Katalog, eksemplar, impor, label
-
-## 0.1.0 — Kerangka aplikasi
+## 0.2.0 — Katalog
+## 0.1.0 — Kerangka

@@ -16,6 +16,10 @@ import Laporan from './pages/Laporan'
 import Digital from './pages/Digital'
 import Anggota from './pages/Anggota'
 import Pengaturan from './pages/Pengaturan'
+import Reservasi from './pages/Reservasi'
+import Usulan from './pages/Usulan'
+import Opname from './pages/Opname'
+import Kartu from './pages/Kartu'
 import PublikLayout from './pages/publik/PublikLayout'
 import PublikKatalog from './pages/publik/PublikKatalog'
 import PublikDetail from './pages/publik/PublikDetail'
@@ -46,13 +50,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/masuk" element={<Login />} />
-
-      {/* Katalog publik — tanpa login */}
       <Route path="/publik" element={<PublikLayout />}>
         <Route index element={<PublikKatalog />} />
         <Route path=":id" element={<PublikDetail />} />
       </Route>
-
       <Route
         element={
           <Wajib>
@@ -68,8 +69,12 @@ export default function App() {
         <Route path="kategori" element={<Penjaga><Kategori /></Penjaga>} />
         <Route path="impor" element={<Penjaga><Impor /></Penjaga>} />
         <Route path="label" element={<Penjaga><Label /></Penjaga>} />
+        <Route path="kartu" element={<Penjaga><Kartu /></Penjaga>} />
         <Route path="sirkulasi" element={<Penjaga><Sirkulasi /></Penjaga>} />
+        <Route path="reservasi" element={<Penjaga><Reservasi /></Penjaga>} />
         <Route path="kunjungan" element={<Penjaga><Kunjungan /></Penjaga>} />
+        <Route path="opname" element={<Penjaga><Opname /></Penjaga>} />
+        <Route path="usulan" element={<Usulan />} />
         <Route path="laporan" element={<PenjagaLaporan><Laporan /></PenjagaLaporan>} />
         <Route path="digital" element={<Digital />} />
         <Route path="anggota" element={<Penjaga><Anggota /></Penjaga>} />

@@ -18,8 +18,12 @@ export const MENU: MenuItem[] = [
   { path: '/anggota', label: 'Anggota', untuk: KELOLA, aktif: true },
   { path: '/impor', label: 'Impor', untuk: KELOLA, aktif: true },
   { path: '/label', label: 'Label', untuk: KELOLA, aktif: true },
+  { path: '/kartu', label: 'Kartu', untuk: KELOLA, aktif: true },
   { path: '/sirkulasi', label: 'Sirkulasi', untuk: KELOLA, aktif: true },
+  { path: '/reservasi', label: 'Reservasi', untuk: KELOLA, aktif: true },
   { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: true },
+  { path: '/opname', label: 'Opname', untuk: KELOLA, aktif: true },
+  { path: '/usulan', label: 'Usulan', untuk: SEMUA, aktif: true },
   { path: '/laporan', label: 'Laporan', untuk: ['admin', 'pustakawan', 'pimpinan'], aktif: true },
   { path: '/pengaturan', label: 'Pengaturan', untuk: SEMUA, aktif: true },
 ]
