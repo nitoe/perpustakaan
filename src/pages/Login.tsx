@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { loginWithEmail } from '../lib/auth'
 
@@ -70,6 +70,12 @@ export default function Login() {
           <button type="submit" className="auth-btn-primary" disabled={proses}>
             {proses ? 'Memeriksa…' : 'Masuk'}
           </button>
+          <p className="text-center text-sm text-muted">
+            Siswa / orang tua:{' '}
+            <Link to="/publik" className="font-medium text-muh-600 hover:underline">
+              buka katalog publik
+            </Link>
+          </p>
         </form>
       </div>
     </div>

@@ -70,8 +70,8 @@
       allow delete: if perpusAdmin();
     }
 
-    // Katalog buku. Staf membaca; buku bertanda `publik` boleh dibaca siapa saja (katalog publik,
-    // fase 2 — kueri wajib memakai where('publik','==',true)). Bawaan: tidak publik.
+    // Katalog buku. Staf membaca; buku bertanda `publik` boleh dibaca siapa saja (katalog publik).
+    // Kueri publik WAJIB: where('publik','==',true). Bawaan: tidak publik.
     match /perpus_buku/{id} {
       allow read: if perpusStaf() || resource.data.get('publik', false) == true;
       allow create, update: if perpusPustakawan() && perpusBukuSah(request.resource.data);
@@ -90,16 +90,14 @@
       allow delete: if perpusAdmin();
     }
 
-    // Anggota non-siswa (guru, karyawan, kelas). Siswa dikenali dari koleksi `siswa` (ID = NIS).
+    // Anggota non-siswa (guru, karyawan, kelas). Siswa dikenali dari koleksi `siswa`.
     match /perpus_anggota/{id} {
       allow read: if perpusStaf();
       allow create, update: if perpusPustakawan();
       allow delete: if perpusAdmin();
     }
 
-    // Peminjaman: hanya admin/pustakawan. Membuat peminjaman WAJIB satu batch dengan perubahan
-    // status eksemplar tersedia -> dipinjam; mengembalikan WAJIB satu batch dengan eksemplar
-    // kembali tersedia (atau hilang). Tidak ada hapus (riwayat tetap).
+    // Peminjaman: hanya admin/pustakawan. Pinjam/kembali wajib batch dengan status eksemplar.
     match /perpus_peminjaman/{id} {
       allow read: if perpusStaf();
       allow create: if perpusPustakawan()
@@ -128,9 +126,11 @@
       allow delete: if perpusAdmin();
     }
 
-    // Sampul buku terkompres (string base64). Tidak ada ubah.
+    // Sampul buku terkompres (string base64).
+    // Baca: staf ATAU siapa saja (agar katalog publik bisa menampilkan sampul).
+    // Isi hanya JPEG kecil; tidak ada data sensitif.
     match /perpus_foto/{id} {
-      allow read: if perpusStaf();
+      allow read: if true;
       allow create: if perpusPustakawan()
                     && request.resource.data.keys().hasOnly(['data', 'createdBy', 'createdAt'])
                     && request.resource.data.createdBy == request.auth.uid
@@ -141,9 +141,7 @@
     }
 
     // Pengaturan (dokumen `aturan`): staf membaca, admin mengubah.
-    // Dokumen `penomoran` (penghitung kode eksemplar PRP-000123): pustakawan boleh MENAIKKAN
-    // `terakhir` (hanya field terakhir dan updatedAt; tidak boleh turun) supaya dua petugas
-    // yang menambah buku bersamaan tidak mendapat kode yang sama.
+    // Dokumen `penomoran`: pustakawan boleh MENAIKKAN `terakhir` saja.
     match /perpus_config/{id} {
       allow read: if perpusStaf();
       allow write: if perpusAdmin();
@@ -162,21 +160,10 @@
       allow update, delete: if false;
     }
 
-    // Koleksi fase 2 dan 3 (perpus_usulan, perpus_reservasi, perpus_jurnal) sengaja belum ada:
-    // tanpa aturan = ditolak oleh blok "Default: tolak semuanya".
+    // Koleksi fase 2 lanjutan (perpus_usulan, perpus_reservasi) dan fase 3 (perpus_jurnal):
+    // belum ada aturan = ditolak default.
 
 
 // ───────────────────────── BAGIAN C: ubah blok `siswa` ─────────────────────────
-// Pustakawan perlu membaca data dasar siswa (nama, NIS, kelas) untuk kartu anggota dan peminjaman,
-// sekalipun akunnya bukan guru. Di blok `match /siswa/{id}` di Penilaian, ganti dua baris:
-//
-//   allow get: if isGuru() || anakSaya(id);
-//   allow list: if isGuru();
-//
-// menjadi:
-//
 //   allow get: if isGuru() || perpusPustakawan() || anakSaya(id);
 //   allow list: if isGuru() || perpusPustakawan();
-//
-// Yang terbuka hanya data dasar `siswa`. Biodata sensitif tetap di `identitas_siswa`
-// dan tidak tersentuh.

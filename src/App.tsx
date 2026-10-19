@@ -16,6 +16,9 @@ import Laporan from './pages/Laporan'
 import Digital from './pages/Digital'
 import Anggota from './pages/Anggota'
 import Pengaturan from './pages/Pengaturan'
+import PublikLayout from './pages/publik/PublikLayout'
+import PublikKatalog from './pages/publik/PublikKatalog'
+import PublikDetail from './pages/publik/PublikDetail'
 import Penjaga from './pages/Penjaga'
 
 function Wajib({ children }: { children: ReactNode }) {
@@ -43,6 +46,13 @@ export default function App() {
   return (
     <Routes>
       <Route path="/masuk" element={<Login />} />
+
+      {/* Katalog publik — tanpa login */}
+      <Route path="/publik" element={<PublikLayout />}>
+        <Route index element={<PublikKatalog />} />
+        <Route path=":id" element={<PublikDetail />} />
+      </Route>
+
       <Route
         element={
           <Wajib>
