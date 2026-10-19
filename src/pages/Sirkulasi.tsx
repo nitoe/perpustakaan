@@ -8,12 +8,12 @@ import {
   cariSiswa,
   daftarPinjamanAktif,
   formatTanggal,
-  idPeminjamSiswa,
   kembalikan,
   kePeminjamAnggota,
   kePeminjamSiswa,
   perpanjang,
   pinjam,
+  pinjamanAktifEksemplar,
   pinjamanAktifPeminjam,
   terlambat,
   type SiswaDasar,
@@ -138,7 +138,6 @@ function ModePinjam({
   const [kodeEks, setKodeEks] = useState('')
   const [proses, setProses] = useState(false)
   const refEks = useRef<HTMLInputElement>(null)
-  const refPeminjam = useRef<HTMLInputElement>(null)
 
   const muatPeminjam = useCallback(async () => {
     onGalat('')
@@ -164,7 +163,6 @@ function ModePinjam({
         setInfoSiswa(s)
         setPeminjam(p)
         setAktif(await pinjamanAktifPeminjam(p.id))
-        onOk('')
         refEks.current?.focus()
       } else {
         const a = await cariAnggota(k)
@@ -209,7 +207,7 @@ function ModePinjam({
         aktifSekarang: aktif.length,
       })
       onLog('pinjam', hasil.peminjamanId)
-      onOk(`Berhasil dipinjamkan: ${e.judul} (${e.id}). Jatuh tempo ${formatTanggal(hasil.jatuhTempo)}.`) 
+      onOk(`Berhasil dipinjamkan: ${e.judul} (${e.id}). Jatuh tempo ${formatTanggal(hasil.jatuhTempo)}.`)
       setKodeEks('')
       setAktif(await pinjamanAktifPeminjam(peminjam.id))
       refEks.current?.focus()
@@ -239,7 +237,6 @@ function ModePinjam({
           hint={tipe === 'siswa' ? 'Pindai kartu anggota atau ketik NISN, lalu Enter.' : 'Ketik ID anggota, lalu Enter.'}
         >
           <input
-            ref={refPeminjam}
             className={inputCls}
             value={kodePeminjam}
             autoFocus
@@ -365,8 +362,7 @@ function ModeKembali({
         onGalat(`Eksemplar ${k} berstatus ${e.status}, bukan dipinjam.`)
         return
       }
-      const snap = await daftarPinjamanAktif(300)
-      const p = snap.find((x) => x.eksemplarId === k)
+      const p = await pinjamanAktifEksemplar(k)
       if (!p) {
         onGalat(`Tidak ada catatan pinjaman aktif untuk ${k}.`)
         return
@@ -430,7 +426,12 @@ function ModeKembali({
             {ketemu.eksemplarId} · {ketemu.peminjam.nama}
             {ketemu.peminjam.kelas ? ` (${ketemu.peminjam.kelas})` : ''} · jatuh tempo{' '}
             {formatTanggal(ketemu.jatuhTempo)}
-            {terlambat(ketemu) && <Badge>Terlambat</Badge>}
+            {terlambat(ketemu) && (
+              <>
+                {' '}
+                <Badge>Terlambat</Badge>
+              </>
+            )}
           </div>
           <Field label="Kondisi saat kembali">
             <select className={inputCls} value={kondisi} onChange={(e) => setKondisi(e.target.value as KondisiBuku)}>
@@ -465,10 +466,7 @@ function ModeKembali({
                     const baru = await perpanjang(ketemu, aturan)
                     onLog('perpanjang', ketemu.id)
                     onOk(`Diperpanjang sampai ${formatTanggal(baru)}.`)
-                    setKetemu({ ...ketemu, jatuhTempo: ketemu.jatuhTempo, jumlahPerpanjang: ketemu.jumlahPerpanjang + 1 })
-                    // refresh full object
-                    const list = await daftarPinjamanAktif(300)
-                    const p = list.find((x) => x.id === ketemu.id)
+                    const p = await pinjamanAktifEksemplar(ketemu.eksemplarId)
                     if (p) setKetemu(p)
                   } catch (err) {
                     onGalat(err instanceof Error ? err.message : 'Gagal memperpanjang.')
@@ -575,9 +573,7 @@ function DaftarPinjaman({
   onKembali: (p: Peminjaman) => Promise<void>
 }) {
   if (data.length === 0) {
-    return (
-      <div className="card-soft p-4 text-sm text-muted">Belum ada pinjaman pada daftar ini.</div>
-    )
+    return <div className="card-soft p-4 text-sm text-muted">Belum ada pinjaman pada daftar ini.</div>
   }
   return (
     <div className="card-soft">
@@ -605,11 +601,19 @@ function DaftarPinjaman({
               </div>
               <div className="flex shrink-0 gap-2">
                 {aturan && p.jumlahPerpanjang < aturan.maksPerpanjang && (
-                  <button type="button" className="text-xs font-medium text-muh-600 hover:underline" onClick={() => void onPerpanjang(p)}>
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-muh-600 hover:underline"
+                    onClick={() => void onPerpanjang(p)}
+                  >
                     Perpanjang
                   </button>
                 )}
-                <button type="button" className="text-xs font-medium text-muh-600 hover:underline" onClick={() => void onKembali(p)}>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-muh-600 hover:underline"
+                  onClick={() => void onKembali(p)}
+                >
                   Kembalikan
                 </button>
               </div>
@@ -620,6 +624,3 @@ function DaftarPinjaman({
     </div>
   )
 }
-
-// dipakai di ModePinjam agar TypeScript tidak mengeluh unused jika tree-shake
-void idPeminjamSiswa
