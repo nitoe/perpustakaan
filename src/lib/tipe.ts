@@ -83,6 +83,19 @@ export interface Peminjaman {
   catatan?: string
 }
 
+/** Pengunjung perpustakaan (sama bentuk dengan peminjam). */
+export type Pengunjung = Peminjam
+
+/** tanggal = YYYY-MM-DD (zona lokal) agar mudah difilter. */
+export interface Kunjungan {
+  id: string
+  tanggal: string
+  waktu: Timestamp
+  pengunjung: Pengunjung
+  keperluan?: string
+  petugasUid?: string
+}
+
 /** Dokumen perpus_config/aturan. Nilai bawaan dipakai bila dokumen belum dibuat. */
 export interface Aturan {
   lamaPinjamHari: number
@@ -97,3 +110,5 @@ export const ATURAN_BAWAAN: Aturan = {
   maksAnggota: 5,
   maksPerpanjang: 1,
 }
+
+export const KEPERLUAN_KUNJUNGAN = ['Baca di tempat', 'Pinjam / kembalikan', 'Belajar / tugas', 'Lainnya'] as const
