@@ -79,6 +79,21 @@ export async function pinjamanAktifPeminjam(peminjamId: string): Promise<Peminja
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as Peminjaman)
 }
 
+/** Peminjaman aktif untuk satu eksemplar (saat pengembalian). */
+export async function pinjamanAktifEksemplar(eksemplarId: string): Promise<Peminjaman | null> {
+  const snap = await getDocs(
+    query(
+      collection(db, 'perpus_peminjaman'),
+      where('eksemplarId', '==', eksemplarId),
+      where('status', '==', 'dipinjam'),
+      limit(1),
+    ),
+  )
+  if (snap.empty) return null
+  const d = snap.docs[0]!
+  return { id: d.id, ...d.data() } as unknown as Peminjaman
+}
+
 /** Semua pinjaman aktif (untuk daftar / terlambat). Batas 300 agar hemat kuota. */
 export async function daftarPinjamanAktif(batas = 300): Promise<Peminjaman[]> {
   const snap = await getDocs(
@@ -94,7 +109,7 @@ export function idPeminjamSiswa(s: SiswaDasar): string {
   return (s.nisn && s.nisn.trim()) || s.id
 }
 
-function kePeminjamSiswa(s: SiswaDasar): Peminjam {
+export function kePeminjamSiswa(s: SiswaDasar): Peminjam {
   return {
     tipe: 'siswa',
     id: idPeminjamSiswa(s),
@@ -103,7 +118,7 @@ function kePeminjamSiswa(s: SiswaDasar): Peminjam {
   }
 }
 
-function kePeminjamAnggota(a: Anggota): Peminjam {
+export function kePeminjamAnggota(a: Anggota): Peminjam {
   return { tipe: 'anggota', id: a.id, nama: a.nama }
 }
 
@@ -234,5 +249,3 @@ export function formatTanggal(t: Timestamp | Date | undefined): string {
 export function terlambat(p: Peminjaman, sekarang = Date.now()): boolean {
   return p.status === 'dipinjam' && p.jatuhTempo.toMillis() < sekarang
 }
-
-export { kePeminjamSiswa, kePeminjamAnggota }
