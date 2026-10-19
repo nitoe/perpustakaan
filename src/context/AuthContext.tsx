@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { User } from 'firebase/auth'
-import { isFirebaseConfigured } from '../lib/firebase'
-import { subscribeAuth } from '../lib/auth'
+import { fetchUserProfile, subscribeAuth } from '../lib/auth'
 import { peranDari } from '../lib/peran'
 import type { AppUser, PeranPerpus } from '../types/user'
 
@@ -10,30 +9,49 @@ interface AuthState {
   profil: AppUser | null
   peran: PeranPerpus | null
   loading: boolean
+  refreshProfil: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthState>({ user: null, profil: null, peran: null, loading: true })
+const AuthContext = createContext<AuthState>({
+  user: null,
+  profil: null,
+  peran: null,
+  loading: true,
+  refreshProfil: async () => {},
+})
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<{ user: User | null; profil: AppUser | null; loading: boolean }>({
-    user: null,
-    profil: null,
-    loading: isFirebaseConfigured,
-  })
+  const [user, setUser] = useState<User | null>(null)
+  const [profil, setProfil] = useState<AppUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isFirebaseConfigured) return
-    return subscribeAuth((user, profil) => setState({ user, profil, loading: false }))
+    return subscribeAuth((u, p) => {
+      setUser(u)
+      setProfil(p)
+      setLoading(false)
+    })
   }, [])
 
-  const value = useMemo<AuthState>(
-    () => ({ ...state, peran: peranDari(state.profil) }),
-    [state],
+  const refreshProfil = useCallback(async () => {
+    if (!user) return
+    setProfil(await fetchUserProfile(user.uid))
+  }, [user])
+
+  const value = useMemo(
+    () => ({
+      user,
+      profil,
+      peran: peranDari(profil),
+      loading,
+      refreshProfil,
+    }),
+    [user, profil, loading, refreshProfil],
   )
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext)
 }
