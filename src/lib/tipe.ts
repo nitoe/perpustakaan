@@ -27,7 +27,7 @@ export interface Buku {
   jenis: JenisKoleksi
   tautanDigital?: string
   formatDigital?: FormatDigital
-  /** true = boleh tampil di katalog publik (fase 2). Berkas berhak cipta jangan dipublikkan. */
+  /** true = boleh tampil di katalog publik. Berkas berhak cipta jangan dipublikkan. */
   publik?: boolean
   eksemplarTotal?: number
   eksemplarTersedia?: number
@@ -48,10 +48,6 @@ export interface Eksemplar {
   sumber?: string
 }
 
-/**
- * Siswa: id = NISN (dari field nisn di koleksi `siswa`; fallback NIPD = ID dokumen).
- * Anggota non-siswa: id dari `perpus_anggota`.
- */
 export interface Peminjam {
   tipe: 'siswa' | 'anggota'
   id: string
@@ -62,7 +58,6 @@ export interface Peminjam {
 export interface Anggota {
   id: string
   nama: string
-  /** guru, karyawan, atau 'kelas' untuk pojok baca kelas (fase 3). */
   jenis: 'guru' | 'karyawan' | 'kelas'
   aktif?: boolean
 }
@@ -83,10 +78,8 @@ export interface Peminjaman {
   catatan?: string
 }
 
-/** Pengunjung perpustakaan (sama bentuk dengan peminjam). */
 export type Pengunjung = Peminjam
 
-/** tanggal = YYYY-MM-DD (zona lokal) agar mudah difilter. */
 export interface Kunjungan {
   id: string
   tanggal: string
@@ -96,7 +89,65 @@ export interface Kunjungan {
   petugasUid?: string
 }
 
-/** Dokumen perpus_config/aturan. Nilai bawaan dipakai bila dokumen belum dibuat. */
+/** Reservasi buku (antrian saat stok habis atau dipesan dulu). */
+export type StatusReservasi = 'antrian' | 'siap' | 'diambil' | 'batal'
+
+export interface Reservasi {
+  id: string
+  bukuId: string
+  judul: string
+  pemesan: Peminjam
+  status: StatusReservasi
+  petugasUid: string
+  catatan?: string
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+}
+
+/** Usulan pengadaan dari guru / staf. */
+export type StatusUsulan = 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan'
+
+export interface Usulan {
+  id: string
+  judul: string
+  pengarang?: string
+  penerbit?: string
+  isbn?: string
+  alasan?: string
+  pengusulUid: string
+  pengusulNama: string
+  status: StatusUsulan
+  catatanAdmin?: string
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+}
+
+/** Sesi stock opname (inventarisasi). */
+export type StatusOpname = 'berjalan' | 'selesai'
+
+export interface OpnameSesi {
+  id: string
+  nama: string
+  status: StatusOpname
+  petugasUid: string
+  petugasNama: string
+  createdAt?: Timestamp
+  selesaiAt?: Timestamp
+}
+
+/** Satu baris hasil pindai dalam sesi opname. */
+export interface OpnameItem {
+  id: string
+  sesiId: string
+  eksemplarId: string
+  bukuId?: string
+  judul?: string
+  statusSistem?: StatusEksemplar
+  ditemukan: boolean
+  catatan?: string
+  waktu?: Timestamp
+}
+
 export interface Aturan {
   lamaPinjamHari: number
   maksSiswa: number
