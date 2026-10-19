@@ -10,6 +10,7 @@ import BukuForm from './pages/BukuForm'
 import Kategori from './pages/Kategori'
 import Impor from './pages/Impor'
 import Label from './pages/Label'
+import Sirkulasi from './pages/Sirkulasi'
 import Penjaga from './pages/Penjaga'
 
 function Wajib({ children }: { children: ReactNode }) {
@@ -38,7 +39,8 @@ export default function App() {
         <Route path="kategori" element={<Penjaga><Kategori /></Penjaga>} />
         <Route path="impor" element={<Penjaga><Impor /></Penjaga>} />
         <Route path="label" element={<Penjaga><Label /></Penjaga>} />
-        {/* Modul menyusul: digital, sirkulasi, kunjungan, anggota, laporan (lihat src/lib/menu.ts) */}
+        <Route path="sirkulasi" element={<Penjaga><Sirkulasi /></Penjaga>} />
+        {/* Modul menyusul: digital, kunjungan, anggota, laporan (lihat src/lib/menu.ts) */}
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.3.0 — Sirkulasi
+- Pinjam: pindai/ketik NISN (kartu anggota) atau ID anggota, lalu kode eksemplar; cek batas pinjaman dan status tersedia.
+- Kembali: pindai kode eksemplar, catat kondisi, opsi tandai hilang.
+- Perpanjang sesuai `perpus_config/aturan` (bawaan: 7 hari, siswa 2, anggota 5, perpanjang 1×).
+- Daftar pinjaman aktif dan filter terlambat; aksi perpanjang/kembalikan dari daftar.
+- Satu `writeBatch` untuk pinjam dan kembali (peminjaman + status eksemplar + penghitung buku), selaras rules.
+- Lookup siswa mengutamakan field `nisn`; fallback ID dokumen (NIPD). `peminjam.id` menyimpan NISN bila ada.
+
 ## 0.2.0 — Katalog, eksemplar, impor, label
 - Katalog: cari/saring (judul, pengarang, kategori, jenis, ketersediaan), tampil bertahap.
 - Buku: tambah/ubah, sampul (dikecilkan di peramban), tautan bacaan digital (hanya http/https), halaman detail.

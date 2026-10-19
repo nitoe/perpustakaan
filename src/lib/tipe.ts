@@ -48,7 +48,10 @@ export interface Eksemplar {
   sumber?: string
 }
 
-/** Siswa (id = NIS, dari koleksi `siswa`) atau anggota non-siswa (id dari `perpus_anggota`). */
+/**
+ * Siswa: id = NISN (dari field nisn di koleksi `siswa`; fallback NIPD = ID dokumen).
+ * Anggota non-siswa: id dari `perpus_anggota`.
+ */
 export interface Peminjam {
   tipe: 'siswa' | 'anggota'
   id: string
