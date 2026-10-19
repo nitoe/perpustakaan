@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.0 — Anggota
+- Modul Anggota: daftar, tambah, ubah, nonaktifkan/aktifkan; hapus khusus admin.
+- Jenis: guru, karyawan, kelas (pojok baca). ID dokumen dipakai di Sirkulasi (tab Anggota).
+- Siswa tidak didaftarkan di sini — tetap lewat NISN dari Penilaian.
+
 ## 0.5.0 — Koleksi digital
 - Halaman Digital: daftar buku `jenis` digital/keduanya, filter format (PDF/video/audio/web) dan kategori, tombol Buka bacaan (http/https saja).
 - Menu Digital diaktifkan untuk semua peran staf.
