@@ -15,6 +15,7 @@ import Kunjungan from './pages/Kunjungan'
 import Laporan from './pages/Laporan'
 import Digital from './pages/Digital'
 import Anggota from './pages/Anggota'
+import Pengaturan from './pages/Pengaturan'
 import Penjaga from './pages/Penjaga'
 
 function Wajib({ children }: { children: ReactNode }) {
@@ -24,7 +25,6 @@ function Wajib({ children }: { children: ReactNode }) {
   return children
 }
 
-/** Halaman yang boleh dibuka admin, pustakawan, dan pimpinan (laporan). */
 function PenjagaLaporan({ children }: { children: ReactNode }) {
   const { peran } = useAuth()
   if (!peran || !['admin', 'pustakawan', 'pimpinan'].includes(peran)) {
@@ -63,6 +63,7 @@ export default function App() {
         <Route path="laporan" element={<PenjagaLaporan><Laporan /></PenjagaLaporan>} />
         <Route path="digital" element={<Digital />} />
         <Route path="anggota" element={<Penjaga><Anggota /></Penjaga>} />
+        <Route path="pengaturan" element={<Pengaturan />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

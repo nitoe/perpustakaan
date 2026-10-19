@@ -3,9 +3,7 @@ import type { PeranPerpus } from '../types/user'
 export interface MenuItem {
   path: string
   label: string
-  /** Peran yang boleh melihat menu ini. */
   untuk: PeranPerpus[]
-  /** false = modul belum dibuat, tidak ditampilkan di menu. Ubah jadi true saat halamannya jadi. */
   aktif: boolean
 }
 
@@ -23,6 +21,7 @@ export const MENU: MenuItem[] = [
   { path: '/sirkulasi', label: 'Sirkulasi', untuk: KELOLA, aktif: true },
   { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: true },
   { path: '/laporan', label: 'Laporan', untuk: ['admin', 'pustakawan', 'pimpinan'], aktif: true },
+  { path: '/pengaturan', label: 'Pengaturan', untuk: SEMUA, aktif: true },
 ]
 
 export function menuUntuk(peran: PeranPerpus | null): MenuItem[] {

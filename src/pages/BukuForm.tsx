@@ -10,6 +10,8 @@ import {
   ubahBuku,
   type DataBuku,
 } from '../lib/katalog'
+import { cariJudul, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
+import { KELAS_DDC, labelDdc } from '../lib/ddc'
 import { useKoleksi } from '../lib/useKoleksi'
 import type { Buku, FormatDigital, JenisKoleksi, KondisiBuku, Kategori } from '../lib/tipe'
 import { Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
@@ -78,11 +80,63 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
   })
   const [fotoBaru, setFotoBaru] = useState<string | null>(null)
   const [galat, setGalat] = useState('')
+  const [info, setInfo] = useState('')
   const [menyimpan, setMenyimpan] = useState(false)
+  const [cariApi, setCariApi] = useState(false)
+  const [hasilCari, setHasilCari] = useState<HasilLookupBuku[]>([])
 
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }))
   const adaDigital = f.jenis !== 'cetak'
   const adaCetak = f.jenis !== 'digital'
+
+  function terapkanLookup(h: HasilLookupBuku) {
+    setF((s) => ({
+      ...s,
+      judul: h.judul || s.judul,
+      pengarang: h.pengarang || s.pengarang,
+      penerbit: h.penerbit || s.penerbit,
+      tahun: h.tahun ? String(h.tahun) : s.tahun,
+      isbn: h.isbn || s.isbn,
+      sinopsis: h.sinopsis || s.sinopsis,
+      bahasa: h.bahasa || s.bahasa || 'Indonesia',
+    }))
+    setHasilCari([])
+    setInfo('Data dari Open Library diisi. Periksa dan lengkapi jika perlu.')
+  }
+
+  async function dariIsbn() {
+    setGalat('')
+    setInfo('')
+    setHasilCari([])
+    const isbn = f.isbn.trim()
+    if (!isbn) return setGalat('Isi ISBN dulu, lalu tekan Cari ISBN.')
+    setCariApi(true)
+    try {
+      const h = await lookupIsbn(isbn)
+      if (!h) setGalat('ISBN tidak ditemukan di Open Library. Isi manual atau coba judul.')
+      else terapkanLookup(h)
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : 'Gagal menghubungi Open Library.')
+    }
+    setCariApi(false)
+  }
+
+  async function dariJudul() {
+    setGalat('')
+    setInfo('')
+    const q = f.judul.trim() || f.isbn.trim()
+    if (q.length < 2) return setGalat('Isi judul (minimal 2 huruf) untuk mencari.')
+    setCariApi(true)
+    try {
+      const list = await cariJudul(q)
+      if (list.length === 0) setGalat('Tidak ada hasil. Coba kata kunci lain atau isi manual.')
+      else if (list.length === 1) terapkanLookup(list[0]!)
+      else setHasilCari(list)
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : 'Gagal mencari.')
+    }
+    setCariApi(false)
+  }
 
   async function pilihFoto(file: File | undefined) {
     if (!file) return
@@ -101,7 +155,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     if (!judul) return setGalat('Judul wajib diisi.')
     if (judul.length > 300) return setGalat('Judul terlalu panjang (maksimal 300 karakter).')
     const tahun = f.tahun.trim() ? Number(f.tahun) : undefined
-    if (tahun !== undefined && (!Number.isInteger(tahun) || tahun < 1000 || tahun > 2100)) return setGalat('Tahun terbit tidak valid.')
+    if (tahun !== undefined && (!Number.isInteger(tahun) || tahun < 1000 || tahun > 2100))
+      return setGalat('Tahun terbit tidak valid.')
     if (awal && f.jenis === 'digital' && (awal.eksemplarTotal ?? 0) > 0)
       return setGalat('Buku ini masih punya eksemplar cetak. Pilih "Cetak dan digital", atau keluarkan eksemplarnya lebih dulu.')
     let tautan: string | undefined
@@ -149,23 +204,74 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
       } else {
         idBuku = await buatBuku(
           data,
-          jumlah > 0 ? { jumlah, rak: f.rak.trim() || undefined, kondisi: f.kondisi, tahunMasuk, sumber: f.sumber.trim() || undefined } : null,
+          jumlah > 0
+            ? {
+                jumlah,
+                rak: f.rak.trim() || undefined,
+                kondisi: f.kondisi,
+                tahunMasuk,
+                sumber: f.sumber.trim() || undefined,
+              }
+            : null,
         )
         void catat(profil, 'tambah buku', 'perpus_buku', idBuku)
       }
       nav(`/katalog/${idBuku}`, { replace: true })
     } catch (err) {
       const kode = (err as { code?: string })?.code
-      setGalat(kode === 'permission-denied' ? 'Anda tidak memiliki izin untuk menyimpan buku.' : 'Gagal menyimpan. Periksa koneksi lalu coba lagi.')
+      setGalat(
+        kode === 'permission-denied'
+          ? 'Anda tidak memiliki izin untuk menyimpan buku.'
+          : 'Gagal menyimpan. Periksa koneksi lalu coba lagi.',
+      )
       setMenyimpan(false)
     }
   }
 
+  const labelKlas = labelDdc(f.klasifikasi)
+
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader judul={awal ? 'Ubah buku' : 'Tambah buku'} keterangan={awal ? awal.judul : 'Isi data buku dan, bila buku cetak, eksemplar awalnya.'} />
+      <PageHeader
+        judul={awal ? 'Ubah buku' : 'Tambah buku'}
+        keterangan={awal ? awal.judul : 'Isi data buku, atau cari dulu dari ISBN/judul.'}
+      />
       <form onSubmit={(e) => void simpan(e)} className="space-y-5">
         {galat && <Notice tipe="error">{galat}</Notice>}
+        {info && <Notice>{info}</Notice>}
+
+        <div className="card-soft space-y-3 p-4">
+          <div className="text-sm font-medium">Bantuan isi data</div>
+          <p className="text-xs text-muted">
+            Data dari Open Library (katalog publik). Judul Indonesia mungkin tidak lengkap — periksa sebelum simpan.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariIsbn()}>
+              {cariApi ? 'Mencari…' : 'Cari ISBN'}
+            </button>
+            <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariJudul()}>
+              {cariApi ? 'Mencari…' : 'Cari judul'}
+            </button>
+          </div>
+          {hasilCari.length > 0 && (
+            <ul className="max-h-48 overflow-y-auto rounded-lg border border-border">
+              {hasilCari.map((h, i) => (
+                <li key={i}>
+                  <button
+                    type="button"
+                    className="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-muh-50"
+                    onClick={() => terapkanLookup(h)}
+                  >
+                    <span className="font-medium">{h.judul}</span>
+                    <span className="text-xs text-muted">
+                      {[h.pengarang, h.tahun, h.isbn].filter(Boolean).join(' · ')}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="card-soft space-y-4 p-4">
           <Field label="Judul *">
@@ -181,27 +287,54 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
             <Field label="Tahun terbit">
               <input className={inputCls} inputMode="numeric" value={f.tahun} onChange={(e) => set('tahun', e.target.value)} />
             </Field>
-            <Field label="ISBN">
+            <Field label="ISBN" hint="Isi lalu tekan Cari ISBN di atas.">
               <input className={inputCls} value={f.isbn} onChange={(e) => set('isbn', e.target.value)} />
             </Field>
             <Field label="Kategori" hint={kategori.length === 0 ? 'Belum ada kategori. Buat dulu di menu Kategori.' : undefined}>
               <select className={inputCls} value={f.kategoriId} onChange={(e) => set('kategoriId', e.target.value)}>
                 <option value="">— Tanpa kategori —</option>
-                {[...kategori].sort((a, b) => a.nama.localeCompare(b.nama, 'id')).map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama}
-                  </option>
-                ))}
+                {[...kategori]
+                  .sort((a, b) => a.nama.localeCompare(b.nama, 'id'))
+                  .map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.nama}
+                    </option>
+                  ))}
               </select>
             </Field>
-            <Field label="Klasifikasi (mis. DDC)">
-              <input className={inputCls} value={f.klasifikasi} onChange={(e) => set('klasifikasi', e.target.value)} />
+            <Field label="Klasifikasi DDC" hint={labelKlas ? labelKlas : 'Pilih ringkasan atau ketik kode.'}>
+              <div className="flex gap-2">
+                <input
+                  className={inputCls}
+                  value={f.klasifikasi}
+                  onChange={(e) => set('klasifikasi', e.target.value)}
+                  placeholder="mis. 2X1, 372"
+                  list="ddc-list"
+                />
+              </div>
+              <datalist id="ddc-list">
+                {KELAS_DDC.flatMap((k) => [
+                  <option key={k.kode} value={k.kode}>
+                    {k.nama}
+                  </option>,
+                  ...(k.anak ?? []).map((a) => (
+                    <option key={a.kode} value={a.kode}>
+                      {a.nama}
+                    </option>
+                  )),
+                ])}
+              </datalist>
             </Field>
             <Field label="Bahasa">
               <input className={inputCls} value={f.bahasa} onChange={(e) => set('bahasa', e.target.value)} placeholder="Indonesia" />
             </Field>
             <Field label="Jenjang baca">
-              <input className={inputCls} value={f.jenjangBaca} onChange={(e) => set('jenjangBaca', e.target.value)} placeholder="Kelas 1-2, Kelas 3-4, Kelas 5-6, Guru" />
+              <input
+                className={inputCls}
+                value={f.jenjangBaca}
+                onChange={(e) => set('jenjangBaca', e.target.value)}
+                placeholder="Kelas 1-2, Kelas 3-4, Kelas 5-6, Guru"
+              />
             </Field>
           </div>
           <Field label="Sinopsis">
@@ -233,12 +366,22 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
           {adaDigital && (
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="sm:col-span-2">
-                <Field label="Tautan bacaan digital *" hint="Alamat berkas/halaman (Google Drive, YouTube, Buku Sekolah Elektronik, dll.).">
-                  <input className={inputCls} value={f.tautanDigital} onChange={(e) => set('tautanDigital', e.target.value)} placeholder="https://" inputMode="url" />
+                <Field label="Tautan bacaan digital *" hint="Google Drive, YouTube, BSE, dll.">
+                  <input
+                    className={inputCls}
+                    value={f.tautanDigital}
+                    onChange={(e) => set('tautanDigital', e.target.value)}
+                    placeholder="https://"
+                    inputMode="url"
+                  />
                 </Field>
               </div>
               <Field label="Format">
-                <select className={inputCls} value={f.formatDigital} onChange={(e) => set('formatDigital', e.target.value as FormatDigital)}>
+                <select
+                  className={inputCls}
+                  value={f.formatDigital}
+                  onChange={(e) => set('formatDigital', e.target.value as FormatDigital)}
+                >
                   {FORMAT.map((x) => (
                     <option key={x.nilai} value={x.nilai}>
                       {x.label}
@@ -251,7 +394,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={f.publik} onChange={(e) => set('publik', e.target.checked)} />
             <span>
-              Boleh tampil di katalog publik <span className="text-muted">(untuk fase berikutnya; jangan centang untuk berkas berhak cipta)</span>
+              Boleh tampil di katalog publik{' '}
+              <span className="text-muted">(fase berikutnya; jangan centang untuk berkas berhak cipta)</span>
             </span>
           </label>
         </div>
@@ -260,7 +404,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
           <div className="card-soft space-y-4 p-4">
             <div className="text-sm font-medium">Eksemplar awal</div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Jumlah eksemplar" hint={`0 sampai ${MAKS_EKSEMPLAR_SEKALI}. Kode label dibuat otomatis (PRP-000123).`}>
+              <Field label="Jumlah eksemplar" hint={`0 sampai ${MAKS_EKSEMPLAR_SEKALI}. Kode label otomatis PRP-…`}>
                 <input className={inputCls} inputMode="numeric" value={f.jumlah} onChange={(e) => set('jumlah', e.target.value)} />
               </Field>
               <Field label="Rak / lokasi">
