@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.5.0 — Koleksi digital
+- Halaman Digital: daftar buku `jenis` digital/keduanya, filter format (PDF/video/audio/web) dan kategori, tombol Buka bacaan (http/https saja).
+- Menu Digital diaktifkan untuk semua peran staf.
+
+## 0.4.1 — Kunjungan: NISN, nama, kelas saling menyesuaikan
+- Formulir satu pengunjung: NISN mengisi nama+kelas; muat kelas lalu ketik nama → saran terbatas kelas itu; pilih saran → ketiga field terisi.
+- Mode per kelas: tampil NISN, saring nama di dalam roster.
+
 ## 0.4.0 — Kunjungan, laporan, beranda
 - Kunjungan: catat per siswa (pindai/ketik NISN) atau per kelas (centang roster); daftar dan rekap kelas hari ini.
 - Laporan: pinjaman terlambat (unduh CSV), buku terpopuler, kunjungan per rentang tanggal + per kelas (unduh CSV).

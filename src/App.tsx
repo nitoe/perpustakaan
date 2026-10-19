@@ -13,6 +13,7 @@ import Label from './pages/Label'
 import Sirkulasi from './pages/Sirkulasi'
 import Kunjungan from './pages/Kunjungan'
 import Laporan from './pages/Laporan'
+import Digital from './pages/Digital'
 import Penjaga from './pages/Penjaga'
 
 function Wajib({ children }: { children: ReactNode }) {
@@ -59,7 +60,8 @@ export default function App() {
         <Route path="sirkulasi" element={<Penjaga><Sirkulasi /></Penjaga>} />
         <Route path="kunjungan" element={<Penjaga><Kunjungan /></Penjaga>} />
         <Route path="laporan" element={<PenjagaLaporan><Laporan /></PenjagaLaporan>} />
-        {/* Modul menyusul: digital, anggota (lihat src/lib/menu.ts) */}
+        <Route path="digital" element={<Digital />} />
+        {/* Modul menyusul: anggota (lihat src/lib/menu.ts) */}
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
