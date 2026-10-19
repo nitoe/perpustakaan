@@ -4,9 +4,13 @@ import { logout } from '../lib/auth'
 import { NAMA_PERAN } from '../lib/peran'
 import { menuUntuk } from '../lib/menu'
 
+/** Pintasan di bilah bawah (HP); menu lengkap tetap di sidebar desktop. */
+const MENU_BAWAH = ['/', '/katalog', '/sirkulasi', '/kunjungan', '/pengaturan']
+
 export default function Layout() {
   const { profil, peran } = useAuth()
   const menu = menuUntuk(peran)
+  const menuBawah = menu.filter((m) => MENU_BAWAH.includes(m.path))
 
   const kelasLink = ({ isActive }: { isActive: boolean }) =>
     `flex items-center rounded-lg px-3 py-2 text-sm font-medium ${
@@ -25,7 +29,7 @@ export default function Layout() {
             <div className="text-xs text-muh-200">SDM 01 Kukusan</div>
           </div>
         </div>
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto">
           {menu.map((m) => (
             <NavLink key={m.path} to={m.path} end={m.path === '/'} className={kelasLink}>
               {m.label}
@@ -57,15 +61,15 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {menu.length > 1 && (
-        <nav className="fixed inset-x-0 bottom-0 flex border-t border-border bg-white lg:hidden print:hidden">
-          {menu.map((m) => (
+      {menuBawah.length > 1 && (
+        <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t border-border bg-white lg:hidden print:hidden">
+          {menuBawah.map((m) => (
             <NavLink
               key={m.path}
               to={m.path}
               end={m.path === '/'}
               className={({ isActive }) =>
-                `flex-1 py-3 text-center text-xs font-medium ${isActive ? 'text-muh-600' : 'text-muted'}`
+                `flex-1 py-3 text-center text-[0.7rem] font-medium ${isActive ? 'text-muh-600' : 'text-muted'}`
               }
             >
               {m.label}
