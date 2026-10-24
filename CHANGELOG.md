@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.13.2 — Menu sidebar bisa dilipat
+- Judul grup di sidebar dapat diklik untuk menampilkan/menyembunyikan item.
+- Preferensi buka/tutup disimpan di localStorage; grup halaman aktif tetap terbuka.
+
+## 0.13.1 — Menu sidebar dikelompokkan
+- Sidebar staf dikelompokkan: Koleksi, Layanan, Data & inventaris, Literasi, Sistem.
+
+
 ## 0.13.0 — Jurnal baca
 - **Jurnal baca siswa** (`/siswa/jurnal`): catat judul, pengarang (opsional), tanggal, kesan/ringkasan; lihat tanggapan guru.
 - **Jurnal baca staf** (`/jurnal`): daftar jurnal (filter kelas), beri/ubah tanggapan.
