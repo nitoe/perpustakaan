@@ -29,6 +29,7 @@ import SiswaMasuk from './pages/siswa/SiswaMasuk'
 import SiswaLayout from './pages/siswa/SiswaLayout'
 import SiswaBeranda from './pages/siswa/SiswaBeranda'
 import SiswaRakBaca from './pages/siswa/SiswaRakBaca'
+import SiswaPinjaman from './pages/siswa/SiswaPinjaman'
 
 function Wajib({ children }: { children: ReactNode }) {
   const { user, profil, loading } = useAuth()
@@ -59,6 +60,7 @@ export default function App() {
       <Route path="/siswa" element={<SiswaLayout />}>
         <Route index element={<SiswaBeranda />} />
         <Route path="baca" element={<SiswaRakBaca />} />
+        <Route path="pinjaman" element={<SiswaPinjaman />} />
       </Route>
       <Route path="/publik" element={<PublikLayout />}>
         <Route index element={<PublikKatalog />} />

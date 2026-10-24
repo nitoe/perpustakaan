@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.12.0 — Pinjaman saya (siswa)
+- **Pinjaman saya** (`/siswa/pinjaman`): siswa yang sudah login melihat buku cetak yang sedang dipinjam (judul, kode eksemplar, tanggal, status terlambat).
+- Menu navigasi area siswa: Beranda · Rak baca · Pinjaman.
+- Beranda siswa: pintasan ke rak baca dan pinjaman.
+- **Rules:** baca `perpus_peminjaman` untuk dokumen `peminjam.tipe == 'siswa'` agar kueri tanpa Auth berfungsi. Detail di `docs/RULES_SISWA_LOGIN.md`.
+
 ## 0.11.0 — Login siswa (NISN)
 - **Masuk siswa** (`/siswa/masuk`): pilih kelas → pilih nama (dropdown sesuai kelas) → kata sandi = **NISN**.
 - Sesi siswa disimpan di `sessionStorage` (bukan Firebase Auth). Akun Auth siswa belum dibuat.

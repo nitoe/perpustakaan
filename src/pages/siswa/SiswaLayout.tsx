@@ -27,12 +27,15 @@ export default function SiswaLayout() {
               </div>
             </div>
           </Link>
-          <nav className="flex items-center gap-3" aria-label="Siswa">
+          <nav className="flex flex-wrap items-center gap-3" aria-label="Siswa">
             <NavLink to="/siswa" end className={kelasNav}>
               Beranda
             </NavLink>
             <NavLink to="/siswa/baca" className={kelasNav}>
               Rak baca
+            </NavLink>
+            <NavLink to="/siswa/pinjaman" className={kelasNav}>
+              Pinjaman
             </NavLink>
             <button
               type="button"
