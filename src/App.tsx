@@ -25,6 +25,10 @@ import PublikKatalog from './pages/publik/PublikKatalog'
 import PublikBaca from './pages/publik/PublikBaca'
 import PublikDetail from './pages/publik/PublikDetail'
 import Penjaga from './pages/Penjaga'
+import SiswaMasuk from './pages/siswa/SiswaMasuk'
+import SiswaLayout from './pages/siswa/SiswaLayout'
+import SiswaBeranda from './pages/siswa/SiswaBeranda'
+import SiswaRakBaca from './pages/siswa/SiswaRakBaca'
 
 function Wajib({ children }: { children: ReactNode }) {
   const { user, profil, loading } = useAuth()
@@ -51,6 +55,11 @@ export default function App() {
   return (
     <Routes>
       <Route path="/masuk" element={<Login />} />
+      <Route path="/siswa/masuk" element={<SiswaMasuk />} />
+      <Route path="/siswa" element={<SiswaLayout />}>
+        <Route index element={<SiswaBeranda />} />
+        <Route path="baca" element={<SiswaRakBaca />} />
+      </Route>
       <Route path="/publik" element={<PublikLayout />}>
         <Route index element={<PublikKatalog />} />
         <Route path="baca" element={<PublikBaca />} />

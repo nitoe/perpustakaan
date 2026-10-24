@@ -26,6 +26,9 @@ export default function PublikLayout() {
             <NavLink to="/publik/baca" className={kelasNav}>
               Rak baca
             </NavLink>
+            <Link to="/siswa/masuk" className="text-xs font-medium text-muh-200 hover:text-white">
+              Masuk siswa
+            </Link>
             <Link to="/masuk" className="text-xs font-medium text-muh-200 hover:text-white">
               Masuk staf
             </Link>

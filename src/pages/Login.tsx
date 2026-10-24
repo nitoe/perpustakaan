@@ -55,7 +55,7 @@ export default function Login() {
       <div className="auth-form-panel">
         <form onSubmit={kirim} className="auth-form-card space-y-4">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Masuk</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Masuk staf</h2>
             <p className="mt-1 text-sm text-muted">Gunakan akun yang sama dengan aplikasi Penilaian.</p>
           </div>
           {galat && <div className="auth-alert auth-alert--error">{galat}</div>}
@@ -71,13 +71,13 @@ export default function Login() {
             {proses ? 'Memeriksa…' : 'Masuk'}
           </button>
           <p className="text-center text-sm text-muted">
-            Siswa / orang tua:{' '}
-            <Link to="/publik/baca" className="font-medium text-muh-600 hover:underline">
-              buka rak baca
+            Siswa:{' '}
+            <Link to="/siswa/masuk" className="font-medium text-muh-600 hover:underline">
+              masuk dengan NISN
             </Link>
             {' · '}
-            <Link to="/publik" className="font-medium text-muh-600 hover:underline">
-              katalog
+            <Link to="/publik/baca" className="font-medium text-muh-600 hover:underline">
+              rak baca publik
             </Link>
           </p>
         </form>
