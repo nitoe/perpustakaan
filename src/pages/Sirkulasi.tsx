@@ -43,7 +43,7 @@ export default function Sirkulasi() {
   }, [])
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <PageHeader
         judul="Sirkulasi"
         keterangan="Pinjam, kembalikan, dan perpanjang buku. Pindai atau ketik NISN lalu kode eksemplar."

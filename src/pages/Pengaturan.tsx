@@ -25,7 +25,7 @@ export default function Pengaturan() {
   ]
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader judul="Pengaturan" keterangan="Akun, aturan pinjam, dan referensi klasifikasi." />
 
       <div className="mb-4 flex flex-wrap gap-2">

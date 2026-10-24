@@ -27,7 +27,7 @@ export default function BukuForm() {
     const ada = buku.data.find((b) => b.id === id)
     if (!ada) {
       return (
-        <div className="mx-auto max-w-xl">
+        <div className="w-full">
           <Notice tipe="warn">Buku tidak ditemukan.</Notice>
         </div>
       )
@@ -231,7 +231,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
   const labelKlas = labelDdc(f.klasifikasi)
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         judul={awal ? 'Ubah buku' : 'Tambah buku'}
         keterangan={awal ? awal.judul : 'Isi data buku, atau cari dulu dari ISBN/judul.'}

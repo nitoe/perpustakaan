@@ -26,7 +26,7 @@ export default function Kartu() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader
         judul="Kartu anggota"
         keterangan="Cetak kartu sederhana per kelas (nama, kelas, NISN). Tempel atau laminating sesuai kebutuhan."

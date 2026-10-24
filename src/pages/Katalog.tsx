@@ -44,7 +44,7 @@ export default function Katalog() {
   }, [buku.data, f])
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader
         judul="Katalog"
         keterangan="Cari buku cetak dan koleksi digital perpustakaan."

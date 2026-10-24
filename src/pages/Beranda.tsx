@@ -59,7 +59,7 @@ export default function Beranda() {
   }, [peran])
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader judul={`Selamat datang, ${profil?.nama ?? ''}`} keterangan="Perpustakaan SD Muhammadiyah 01 Kukusan" />
       {peran ? (
         <>

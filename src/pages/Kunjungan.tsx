@@ -44,7 +44,7 @@ export default function Kunjungan() {
   const rekap = rekapPerKelas(hariIni)
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <PageHeader
         judul="Kunjungan"
         keterangan="Catat pengunjung: NISN, nama, dan kelas saling terisi otomatis."

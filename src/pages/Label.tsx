@@ -69,7 +69,7 @@ export default function Label() {
   }, [bukuId, sp, muat])
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <div className="print:hidden">
         <PageHeader judul="Cetak label" keterangan="Label barcode untuk ditempel pada buku. Pemindai membaca kode eksemplar (mis. PRP-000123)." />
         <div className="card-soft mb-4 grid gap-4 p-4 sm:grid-cols-4">

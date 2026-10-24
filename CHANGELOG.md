@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.13.3 — Lebar halaman admin (anti ruang kosong)
+- Shell lebar di `Layout` mengikuti pola Penilaian: data/tabel hingga `max-w-[1600px]`, form `max-w-2xl`.
+- Menghapus `mx-auto max-w-*` sempit di root halaman admin yang membuat konten mengumpul di tengah.
+- ANTIREGRESI: lebar dikontrol di Layout, bukan di tiap halaman.
+
+
 ## 0.13.2 — Menu sidebar bisa dilipat
 - Judul grup di sidebar dapat diklik untuk menampilkan/menyembunyikan item.
 - Preferensi buka/tutup disimpan di localStorage; grup halaman aktif tetap terbuka.

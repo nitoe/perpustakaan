@@ -13,7 +13,7 @@ export default function Laporan() {
   const [galat, setGalat] = useState('')
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader judul="Laporan" keterangan="Ringkasan pinjaman terlambat, buku terpopuler, dan kunjungan." />
 
       <div className="mb-4 flex flex-wrap gap-2">

@@ -62,7 +62,7 @@ export default function BukuDetail() {
   if (buku.loading) return <div className="text-sm text-muted">Memuat…</div>
   if (!b) {
     return (
-      <div className="mx-auto max-w-xl space-y-3">
+      <div className="w-full space-y-3">
         <Notice tipe="warn">Buku tidak ditemukan.</Notice>
         <Link to="/katalog" className={btnGhost}>
           Kembali ke katalog
@@ -95,7 +95,7 @@ export default function BukuDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader
         judul={b.judul}
         keterangan={[b.pengarang, b.penerbit, b.tahun].filter(Boolean).join(' · ')}

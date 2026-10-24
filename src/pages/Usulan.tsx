@@ -74,7 +74,7 @@ export default function Usulan() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader judul="Usulan buku" keterangan="Guru dan staf dapat mengusulkan judul untuk dibeli/diadakan." />
       {galat && (
         <div className="mb-4">

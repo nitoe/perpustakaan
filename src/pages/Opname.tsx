@@ -102,7 +102,7 @@ export default function Opname() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <PageHeader
         judul="Stock opname"
         keterangan="Inventarisasi dengan memindai label eksemplar. Bandingkan hasil pindai dengan status di sistem."

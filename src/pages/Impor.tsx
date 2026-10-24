@@ -142,7 +142,7 @@ export default function Impor() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader judul="Impor buku" keterangan="Masukkan banyak buku sekaligus dari berkas CSV (bisa disimpan dari Excel)." />
 
       {galat && (

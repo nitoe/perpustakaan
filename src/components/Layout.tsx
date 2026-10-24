@@ -8,6 +8,29 @@ import { menuTerkelompok, menuUntuk } from '../lib/menu'
 /** Pintasan di bilah bawah (HP); menu lengkap tetap di sidebar desktop. */
 const MENU_BAWAH = ['/', '/katalog', '/sirkulasi', '/kunjungan', '/pengaturan']
 
+/** Pola sama dengan Penilaian: lebar dikontrol di shell Layout, bukan max-w sempit di tiap halaman. */
+/** Halaman data/tabel/dashboard — pakai lebar penuh area kerja. */
+const HALAMAN_LEBAR = [
+  '/',
+  '/katalog',
+  '/digital',
+  '/impor',
+  '/label',
+  '/kartu',
+  '/laporan',
+  '/sirkulasi',
+  '/kunjungan',
+  '/reservasi',
+  '/opname',
+  '/anggota',
+  '/kategori',
+  '/usulan',
+  '/jurnal',
+]
+
+/** Form ringkas — kolom terbaca, tidak melebar sia-sia. */
+const HALAMAN_SEMPIT = ['/pengaturan', '/katalog/baru']
+
 const STORAGE_KEY = 'perpus.menu.buka'
 
 function bacaBuka(): Record<string, boolean> {
@@ -151,8 +174,21 @@ export default function Layout() {
         </button>
       </header>
 
-      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8 print:p-0">
-        <Outlet />
+      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-5 lg:p-6 lg:pb-6 print:p-0">
+        <div
+          className={`mx-auto w-full ${
+            HALAMAN_SEMPIT.some((p) => lokasi.pathname === p || lokasi.pathname.startsWith(p + '/'))
+              || /^\/katalog\/[^/]+\/ubah$/.test(lokasi.pathname)
+              ? 'max-w-2xl'
+              : HALAMAN_LEBAR.some(
+                    (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
+                  ) || lokasi.pathname === '/'
+                ? 'max-w-[1600px]'
+                : 'max-w-6xl'
+          }`}
+        >
+          <Outlet />
+        </div>
       </main>
 
       {menuBawah.length > 1 && (

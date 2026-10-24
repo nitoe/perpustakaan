@@ -57,7 +57,7 @@ export default function Jurnal() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         judul="Jurnal baca"
         keterangan="Bacaan yang dicatat siswa. Guru dan pustakawan dapat memberi tanggapan singkat."

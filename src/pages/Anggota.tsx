@@ -59,7 +59,7 @@ export default function Anggota() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <PageHeader
         judul="Anggota"
         keterangan="Peminjam non-siswa: guru, karyawan, atau kelas (pojok baca). Siswa tetap dari data Penilaian (NISN)."

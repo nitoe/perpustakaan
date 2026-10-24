@@ -92,7 +92,7 @@ export default function Reservasi() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <PageHeader judul="Reservasi" keterangan="Antrian buku yang sedang dipinjam atau dipesan untuk diambil." />
       {galat && (
         <div className="mb-4">

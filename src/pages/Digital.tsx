@@ -63,7 +63,7 @@ export default function Digital() {
   }, [digital, f])
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <PageHeader
         judul="Koleksi digital"
         keterangan="E-book, video, audio, dan tautan bacaan. Dibuka di tab baru (tidak diunggah ke server sekolah)."
