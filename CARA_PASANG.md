@@ -1,24 +1,29 @@
-# Cara memasang patch 0.12.0 — Pinjaman saya
+# Cara memasang 0.13.0 — Jurnal baca
 
 Ekstrak di **root repo** `perpustakaan`.
 
 ## File baru
 ```
-src/pages/siswa/SiswaPinjaman.tsx
+src/lib/jurnal.ts
+src/pages/Jurnal.tsx
+src/pages/siswa/SiswaJurnal.tsx
 ```
 
 ## File diganti
 ```
 src/App.tsx
+src/lib/menu.ts
+src/lib/tipe.ts
 src/pages/siswa/SiswaLayout.tsx
 src/pages/siswa/SiswaBeranda.tsx
+firestore.rules.perpustakaan
 docs/RULES_SISWA_LOGIN.md
 CHANGELOG.md
 ANTIREGRESI.md
-CARA_PASANG.md
 ```
 
 ## Setelah ekstrak
-1. `npm run dev` — buka `/siswa/pinjaman` setelah login siswa.
-2. Bila muncul *permission-denied*, sesuaikan rules (lihat `docs/RULES_SISWA_LOGIN.md` bagian 2) di Firebase Console atau repo Penilaian.
-3. Commit & push manual.
+1. Tempel blok `perpus_jurnal` dari `firestore.rules.perpustakaan` ke rules Penilaian (atau Firebase Console), lalu publish.
+2. `npm run dev` — uji `/siswa/jurnal` (siswa) dan `/jurnal` (staf).
+3. Bila error indeks, klik tautan di konsol browser (F12) untuk membuat indeks komposit.
+4. Commit & push manual.

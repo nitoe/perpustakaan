@@ -171,6 +171,37 @@
       allow delete: if perpusAdmin();
     }
 
+
+    // Jurnal baca: siswa menulis (tanpa Auth); staf memberi tanggapan.
+    match /perpus_jurnal/{id} {
+      allow read: if perpusStaf() || resource.data.siswaId is string;
+      allow create: if request.resource.data.keys().hasAll(['siswaId', 'siswaNama', 'kelas', 'judul', 'catatan', 'tanggalBaca'])
+                    && request.resource.data.siswaId is string
+                    && request.resource.data.siswaId.size() > 0
+                    && request.resource.data.siswaId.size() <= 40
+                    && request.resource.data.siswaNama is string
+                    && request.resource.data.siswaNama.size() > 0
+                    && request.resource.data.siswaNama.size() <= 120
+                    && request.resource.data.kelas is string
+                    && request.resource.data.kelas.size() <= 20
+                    && request.resource.data.judul is string
+                    && request.resource.data.judul.size() > 0
+                    && request.resource.data.judul.size() <= 300
+                    && request.resource.data.catatan is string
+                    && request.resource.data.catatan.size() > 0
+                    && request.resource.data.catatan.size() <= 2000
+                    && request.resource.data.tanggalBaca is string
+                    && request.resource.data.tanggalBaca.size() == 10
+                    && !('tanggapanGuru' in request.resource.data)
+                    && !('guruUid' in request.resource.data);
+      allow update: if perpusStaf()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['tanggapanGuru', 'guruUid', 'guruNama', 'updatedAt'])
+                    && request.resource.data.tanggapanGuru is string
+                    && request.resource.data.tanggapanGuru.size() <= 2000;
+      allow delete: if perpusPustakawan();
+    }
+
 // ──── BAGIAN C: siswa ────
 // allow get: if isGuru() || perpusPustakawan() || anakSaya(id);
 // allow list: if isGuru() || perpusPustakawan();

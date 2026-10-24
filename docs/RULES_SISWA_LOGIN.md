@@ -67,3 +67,17 @@ npm run deploy
 ```
 
 Lihat `docs/DEPLOY.md` di repo perpustakaan.
+
+## 5. Koleksi `perpus_jurnal` — jurnal baca
+
+Tempel blok dari `firestore.rules.perpustakaan` (match `/perpus_jurnal/{id}`):
+
+- **read:** staf, atau dokumen yang punya `siswaId` (klien wajib filter `siswaId` saat siswa login).
+- **create:** tanpa auth; field wajib + batas panjang; tidak boleh menyertakan tanggapan guru.
+- **update:** hanya staf; hanya `tanggapanGuru`, `guruUid`, `guruNama`, `updatedAt`.
+- **delete:** pustakawan/admin.
+
+Indeks komposit yang biasanya diminta Firestore (buat lewat tautan error di konsol):
+
+1. `perpus_jurnal`: `siswaId` ASC, `tanggalBaca` DESC  
+2. `perpus_jurnal`: `kelas` ASC, `tanggalBaca` DESC  

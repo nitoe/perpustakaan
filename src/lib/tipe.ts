@@ -148,6 +148,26 @@ export interface OpnameItem {
   waktu?: Timestamp
 }
 
+/** Entri jurnal baca / literasi siswa. */
+export interface JurnalBaca {
+  id: string
+  siswaId: string
+  siswaNama: string
+  kelas: string
+  judul: string
+  pengarang?: string
+  bukuId?: string
+  /** Kesan / ringkasan singkat siswa. */
+  catatan: string
+  /** YYYY-MM-DD zona lokal. */
+  tanggalBaca: string
+  tanggapanGuru?: string
+  guruUid?: string
+  guruNama?: string
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+}
+
 export interface Aturan {
   lamaPinjamHari: number
   maksSiswa: number

@@ -20,6 +20,7 @@ import Reservasi from './pages/Reservasi'
 import Usulan from './pages/Usulan'
 import Opname from './pages/Opname'
 import Kartu from './pages/Kartu'
+import Jurnal from './pages/Jurnal'
 import PublikLayout from './pages/publik/PublikLayout'
 import PublikKatalog from './pages/publik/PublikKatalog'
 import PublikBaca from './pages/publik/PublikBaca'
@@ -30,6 +31,7 @@ import SiswaLayout from './pages/siswa/SiswaLayout'
 import SiswaBeranda from './pages/siswa/SiswaBeranda'
 import SiswaRakBaca from './pages/siswa/SiswaRakBaca'
 import SiswaPinjaman from './pages/siswa/SiswaPinjaman'
+import SiswaJurnal from './pages/siswa/SiswaJurnal'
 
 function Wajib({ children }: { children: ReactNode }) {
   const { user, profil, loading } = useAuth()
@@ -61,6 +63,7 @@ export default function App() {
         <Route index element={<SiswaBeranda />} />
         <Route path="baca" element={<SiswaRakBaca />} />
         <Route path="pinjaman" element={<SiswaPinjaman />} />
+        <Route path="jurnal" element={<SiswaJurnal />} />
       </Route>
       <Route path="/publik" element={<PublikLayout />}>
         <Route index element={<PublikKatalog />} />
@@ -88,6 +91,7 @@ export default function App() {
         <Route path="kunjungan" element={<Penjaga><Kunjungan /></Penjaga>} />
         <Route path="opname" element={<Penjaga><Opname /></Penjaga>} />
         <Route path="usulan" element={<Usulan />} />
+        <Route path="jurnal" element={<Jurnal />} />
         <Route path="laporan" element={<PenjagaLaporan><Laporan /></PenjagaLaporan>} />
         <Route path="digital" element={<Digital />} />
         <Route path="anggota" element={<Penjaga><Anggota /></Penjaga>} />

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.13.0 — Jurnal baca
+- **Jurnal baca siswa** (`/siswa/jurnal`): catat judul, pengarang (opsional), tanggal, kesan/ringkasan; lihat tanggapan guru.
+- **Jurnal baca staf** (`/jurnal`): daftar jurnal (filter kelas), beri/ubah tanggapan.
+- Koleksi `perpus_jurnal` + tipe, lib, rules di `firestore.rules.perpustakaan`.
+- Menu staf: Jurnal baca. Navigasi siswa: Beranda · Rak baca · Pinjaman · Jurnal.
+- Perbaikan: route `/siswa/pinjaman` dipasang di `App.tsx` bila belum ada.
+
 ## 0.12.0 — Pinjaman saya (siswa)
 - **Pinjaman saya** (`/siswa/pinjaman`): siswa yang sudah login melihat buku cetak yang sedang dipinjam (judul, kode eksemplar, tanggal, status terlambat).
 - Menu navigasi area siswa: Beranda · Rak baca · Pinjaman.
@@ -18,12 +25,7 @@
 - Navigasi katalog publik: Katalog dan Rak baca. Tombol Baca juga tetap di detail publik.
 
 ## 0.9.0 — Fase 2 lengkap
-- **Reservasi**: antrian buku (siswa/anggota), status antrian → siap → diambil / batal.
-- **Usulan**: guru/staf ajukan judul; pustakawan setujui/tolak.
-- **Stock opname**: sesi inventarisasi, pindai kode eksemplar, daftar hasil.
-- **Kartu anggota**: cetak kartu per kelas (nama, kelas, NISN).
-- **Katalog publik** (`/publik`): tanpa login, hanya `publik == true`.
-- Rules: `perpus_reservasi`, `perpus_usulan`, `perpus_opname`, `perpus_opname_item`; `perpus_foto` baca publik.
+- **Reservasi**, **Usulan**, **Stock opname**, **Kartu anggota**, **Katalog publik**.
 
 ## 0.8.0 — Katalog publik
 ## 0.7.1 — Dokumen uji coba

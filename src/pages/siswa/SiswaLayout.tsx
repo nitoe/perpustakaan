@@ -37,6 +37,9 @@ export default function SiswaLayout() {
             <NavLink to="/siswa/pinjaman" className={kelasNav}>
               Pinjaman
             </NavLink>
+            <NavLink to="/siswa/jurnal" className={kelasNav}>
+              Jurnal
+            </NavLink>
             <button
               type="button"
               onClick={() => keluar()}

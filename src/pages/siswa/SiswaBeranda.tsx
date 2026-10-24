@@ -15,8 +15,8 @@ export default function SiswaBeranda() {
 
       <div className="card-soft space-y-3 p-4">
         <p className="text-sm text-[#1a1d33]">
-          Selamat datang di perpustakaan digital sekolah. Baca koleksi digital atau cek buku cetak yang sedang
-          Anda pinjam.
+          Selamat datang di perpustakaan digital sekolah. Baca koleksi digital, cek pinjaman, atau catat bacaan di
+          jurnal.
         </p>
         <div className="flex flex-wrap gap-2">
           <Link to="/siswa/baca" className={btnPrimary}>
@@ -25,13 +25,15 @@ export default function SiswaBeranda() {
           <Link to="/siswa/pinjaman" className={btnGhost}>
             Pinjaman saya
           </Link>
+          <Link to="/siswa/jurnal" className={btnGhost}>
+            Jurnal baca
+          </Link>
         </div>
       </div>
 
       <div className="mt-4">
         <Notice>
-          Meminjam atau mengembalikan buku cetak dilakukan di perpustakaan sekolah dengan kartu anggota. Reservasi
-          dan jurnal baca akan ditambahkan bertahap.
+          Meminjam atau mengembalikan buku cetak dilakukan di perpustakaan sekolah dengan kartu anggota.
         </Notice>
       </div>
     </div>

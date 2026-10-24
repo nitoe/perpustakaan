@@ -24,6 +24,7 @@ export const MENU: MenuItem[] = [
   { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: true },
   { path: '/opname', label: 'Opname', untuk: KELOLA, aktif: true },
   { path: '/usulan', label: 'Usulan', untuk: SEMUA, aktif: true },
+  { path: '/jurnal', label: 'Jurnal baca', untuk: SEMUA, aktif: true },
   { path: '/laporan', label: 'Laporan', untuk: ['admin', 'pustakawan', 'pimpinan'], aktif: true },
   { path: '/pengaturan', label: 'Pengaturan', untuk: SEMUA, aktif: true },
 ]
