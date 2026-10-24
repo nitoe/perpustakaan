@@ -48,6 +48,8 @@ export default function SiswaJurnal() {
   }, [muat])
 
   if (!sesi) return null
+  // Salinan lokal agar TS tidak menganggap sesi bisa null di dalam async handler.
+  const siswa = sesi
 
   async function kirim(e: FormEvent) {
     e.preventDefault()
@@ -56,9 +58,9 @@ export default function SiswaJurnal() {
     setOk('')
     try {
       await buatJurnal({
-        siswaId: sesi.nisn,
-        siswaNama: sesi.nama,
-        kelas: sesi.kelas,
+        siswaId: siswa.nisn,
+        siswaNama: siswa.nama,
+        kelas: siswa.kelas,
         judul,
         pengarang,
         catatan,
