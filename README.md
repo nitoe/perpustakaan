@@ -17,8 +17,8 @@ URL tujuan: `https://perpustakaan.sdmuhammadiyah01kks.sch.id`
 
 ## Status
 
-**Fase 1 (inti) selesai di kode** (katalog → sirkulasi → kunjungan → digital → anggota → pengaturan).  
-Tahap berikutnya: **uji coba** bersama pustakawan/guru ([docs/UJI_COBA.md](docs/UJI_COBA.md)), lalu peluncuran.
+**Fase 1 dan fase 2 selesai di kode**, ditambah rak baca siswa tanpa akun di `/publik/baca`.  
+Akun siswa belum dibuat. Tahap berikutnya: **uji coba** bersama pustakawan/guru ([docs/UJI_COBA.md](docs/UJI_COBA.md)), lalu peluncuran.
 
 ## Menjalankan di komputer
 
@@ -49,9 +49,10 @@ npm run dev
 | Anggota | Admin, pustakawan | Peminjam non-siswa |
 | Laporan | Admin, pustakawan, pimpinan | Terlambat, populer, kunjungan |
 | Pengaturan | Semua (aturan pinjam: admin) | Akun, DDC, aturan |
+| Rak baca `/publik/baca` | Siswa dan orang tua, tanpa akun | Baca koleksi digital yang ditandai publik |
 
 ## Memberi akses
 
 Tanpa akun baru: di Firestore, dokumen `users/{uid}` diberi field teks `peranPerpus` = `pustakawan`, `pimpinan`, `guru`, atau `admin`. Admin Penilaian otomatis admin perpustakaan; semua jenis guru otomatis `guru`.
 
-Siswa dilayani lewat **NISN** (koleksi `siswa` Penilaian), bukan akun login.
+Siswa dilayani lewat **NISN** (koleksi `siswa` Penilaian), bukan akun login. Bacaan digital yang boleh dibaca siswa dibuka tanpa akun di `/publik/baca`.

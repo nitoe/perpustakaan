@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.10.0 — Rak baca siswa
+- **Rak baca** (`/publik/baca`): siswa dan orang tua membuka koleksi digital yang ditandai publik, tanpa akun. Tautan lewat `bisaDibacaPublik()` / `tautanAman()`; tidak di-iframe (CSP `'self'`).
+- Navigasi katalog publik: Katalog dan Rak baca. Tombol Baca juga tetap di detail publik.
+
 ## 0.9.0 — Fase 2 lengkap
 - **Reservasi**: antrian buku (siswa/anggota), status antrian → siap → diambil / batal.
 - **Usulan**: guru/staf ajukan judul; pustakawan setujui/tolak.

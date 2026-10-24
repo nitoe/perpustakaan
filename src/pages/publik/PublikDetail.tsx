@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import { tautanAman } from '../../lib/katalog'
+import { bisaDibacaPublik } from '../../lib/katalog'
 import type { Buku } from '../../lib/tipe'
 import { Badge, Notice, PageHeader, btnGhost, btnPrimary } from '../../components/ui'
 import Sampul from '../../components/Sampul'
@@ -63,7 +63,7 @@ export default function PublikDetail() {
     )
   }
 
-  const bacaan = tautanAman(b.tautanDigital)
+  const bacaan = bisaDibacaPublik(b)
 
   return (
     <div>

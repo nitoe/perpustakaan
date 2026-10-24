@@ -27,6 +27,12 @@ export function tautanAman(u?: string | null): string | null {
   }
 }
 
+/** Bacaan untuk siswa/orang tua: publik, bukan cetak saja, dan tautan http/https. */
+export function bisaDibacaPublik(b: Pick<Buku, 'publik' | 'jenis' | 'tautanDigital'>): string | null {
+  if (!b.publik || b.jenis === 'cetak') return null
+  return tautanAman(b.tautanDigital)
+}
+
 export type DataBuku = Omit<Buku, 'id' | 'eksemplarTotal' | 'eksemplarTersedia'>
 
 export interface DataEksemplarBaru {

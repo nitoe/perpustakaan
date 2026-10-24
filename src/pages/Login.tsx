@@ -72,8 +72,12 @@ export default function Login() {
           </button>
           <p className="text-center text-sm text-muted">
             Siswa / orang tua:{' '}
+            <Link to="/publik/baca" className="font-medium text-muh-600 hover:underline">
+              buka rak baca
+            </Link>
+            {' · '}
             <Link to="/publik" className="font-medium text-muh-600 hover:underline">
-              buka katalog publik
+              katalog
             </Link>
           </p>
         </form>

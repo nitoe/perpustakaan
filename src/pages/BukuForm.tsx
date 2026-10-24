@@ -394,8 +394,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={f.publik} onChange={(e) => set('publik', e.target.checked)} />
             <span>
-              Boleh tampil di katalog publik{' '}
-              <span className="text-muted">(fase berikutnya; jangan centang untuk berkas berhak cipta)</span>
+              Tampilkan di katalog publik dan rak baca siswa{' '}
+              <span className="text-muted">(jangan centang berkas yang masih berhak cipta)</span>
             </span>
           </label>
         </div>

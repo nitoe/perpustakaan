@@ -77,6 +77,15 @@ Centang tiap butir; catat yang gagal di bagian akhir.
 | G2 | Layar HP: menu bawah / sidebar terbaca, form bisa dipakai | |
 | G3 | Printer label: hasil cetak terbaca scanner | |
 
+## H. Rak baca siswa (tanpa akun)
+
+| # | Uji | Hasil |
+|---|-----|-------|
+| H1 | Buka `/publik/baca` tanpa login → hanya buku digital/keduanya yang `publik` dan tautannya http/https | |
+| H2 | Tombol Baca membuka tab baru; tautan `javascript:` tidak pernah jadi tautan | |
+| H3 | Buku cetak atau yang tidak dicentang publik tidak muncul di rak baca | |
+| H4 | `/publik` punya tombol Rak baca; menu Katalog / Rak baca tidak mengarah ke halaman detail | |
+
 ---
 
 ## Catatan kegagalan
@@ -90,4 +99,4 @@ Centang tiap butir; catat yang gagal di bagian akhir.
 1. Deploy produksi: `npm run deploy` (dari repo ini).
 2. Pastikan domain `perpustakaan.…` dan Authorized domains Auth.
 3. Briefing singkat pustakawan (alur pinjam/kembali/kunjungan + impor).
-4. Fase 2 (katalog publik, reservasi, usulan, stock opname) menyusul setelah stabil.
+4. Fase 2 (katalog publik, reservasi, usulan, stock opname) dan rak baca (`/publik/baca`) sudah ada di kode; uji butir H bersama fase 1.

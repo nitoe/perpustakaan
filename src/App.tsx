@@ -22,6 +22,7 @@ import Opname from './pages/Opname'
 import Kartu from './pages/Kartu'
 import PublikLayout from './pages/publik/PublikLayout'
 import PublikKatalog from './pages/publik/PublikKatalog'
+import PublikBaca from './pages/publik/PublikBaca'
 import PublikDetail from './pages/publik/PublikDetail'
 import Penjaga from './pages/Penjaga'
 
@@ -52,6 +53,7 @@ export default function App() {
       <Route path="/masuk" element={<Login />} />
       <Route path="/publik" element={<PublikLayout />}>
         <Route index element={<PublikKatalog />} />
+        <Route path="baca" element={<PublikBaca />} />
         <Route path=":id" element={<PublikDetail />} />
       </Route>
       <Route

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import type { Buku } from '../../lib/tipe'
-import { Badge, Notice, PageHeader, inputCls } from '../../components/ui'
+import { Badge, Notice, PageHeader, btnPrimary, inputCls } from '../../components/ui'
 
 const HALAMAN = 24
 
@@ -52,7 +52,12 @@ export default function PublikKatalog() {
     <div>
       <PageHeader
         judul="Cari buku"
-        keterangan="Katalog terbuka untuk siswa dan orang tua. Peminjaman tetap di perpustakaan sekolah."
+        keterangan="Katalog terbuka untuk siswa dan orang tua. Bacaan digital ada di Rak baca. Peminjaman cetak tetap di perpustakaan sekolah."
+        aksi={
+          <Link to="/publik/baca" className={btnPrimary}>
+            Rak baca
+          </Link>
+        }
       />
 
       {galat && (
