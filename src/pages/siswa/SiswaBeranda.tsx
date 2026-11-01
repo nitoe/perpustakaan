@@ -1,40 +1,58 @@
 import { Link } from 'react-router-dom'
 import { useSiswa } from '../../context/SiswaContext'
-import { Notice, PageHeader, btnGhost, btnPrimary } from '../../components/ui'
 
 export default function SiswaBeranda() {
   const { sesi } = useSiswa()
   if (!sesi) return null
 
   return (
-    <div>
-      <PageHeader
-        judul={`Halo, ${sesi.nama}`}
-        keterangan={`Kelas ${sesi.kelas} · NISN ${sesi.nisn}`}
-      />
-
-      <div className="card-soft space-y-3 p-4">
-        <p className="text-sm text-[#1a1d33]">
-          Selamat datang di perpustakaan digital sekolah. Baca koleksi digital, cek pinjaman, atau catat bacaan di
-          jurnal.
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold text-muh-800 sm:text-3xl">
+          Halo, {sesi.nama.split(' ')[0]}!
+        </h1>
+        <p className="mt-1 text-muted">
+          {sesi.preview ? 'Mode pratinjau tampilan siswa' : `Kelas ${sesi.kelas}`}
         </p>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/siswa/baca" className={btnPrimary}>
-            Rak baca
-          </Link>
-          <Link to="/siswa/pinjaman" className={btnGhost}>
-            Pinjaman saya
-          </Link>
-          <Link to="/siswa/jurnal" className={btnGhost}>
-            Jurnal baca
-          </Link>
-        </div>
       </div>
 
-      <div className="mt-4">
-        <Notice>
-          Meminjam atau mengembalikan buku cetak dilakukan di perpustakaan sekolah dengan kartu anggota.
-        </Notice>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link
+          to="/siswa/baca"
+          className="group card-soft flex flex-col overflow-hidden transition hover:shadow-md"
+        >
+          <div className="h-28 bg-gradient-to-br from-muh-100 to-muh-50" />
+          <div className="p-4">
+            <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Rak Baca</div>
+            <p className="mt-1 text-sm text-muted">Baca cerita dan buku digital sekolah.</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/siswa/pinjaman"
+          className="group card-soft flex flex-col overflow-hidden transition hover:shadow-md"
+        >
+          <div className="h-28 bg-gradient-to-br from-amber-100 to-amber-50" />
+          <div className="p-4">
+            <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Pinjaman Saya</div>
+            <p className="mt-1 text-sm text-muted">Lihat buku cetak yang sedang kamu pinjam.</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/siswa/jurnal"
+          className="group card-soft flex flex-col overflow-hidden transition hover:shadow-md"
+        >
+          <div className="h-28 bg-gradient-to-br from-emerald-100 to-emerald-50" />
+          <div className="p-4">
+            <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Jurnal Baca</div>
+            <p className="mt-1 text-sm text-muted">Catat kesan dan bacaanmu.</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="rounded-xl border border-border bg-white p-4 text-sm text-muted">
+        Meminjam atau mengembalikan buku cetak dilakukan di perpustakaan sekolah.
       </div>
     </div>
   )

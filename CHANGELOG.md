@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## 0.14.0 — Mode pratinjau tampilan siswa + layout siswa lebih visual
+- **Mode pratinjau** (admin/pustakawan): tombol “Lihat tampilan siswa” di Beranda staf. Membuka area `/siswa` dengan sesi pratinjau (`preview: true`) tanpa perlu NISN.
+- Banner kuning + tombol “Kembali ke Admin” saat mode pratinjau aktif.
+- Layout siswa diperbarui: header putih ringan, navigasi pill, lebar `max-w-6xl`, latar `#fafbff`.
+- Beranda siswa: kartu visual besar (Rak Baca, Pinjaman, Jurnal) menggantikan daftar tombol biasa.
+- ANTIREGRESI: butir baru tentang mode pratinjau (tidak boleh menulis data sebagai siswa sungguhan).
+
 ## 0.13.3 — Lebar halaman admin (anti ruang kosong)
 - Shell lebar di `Layout` mengikuti pola Penilaian: data/tabel hingga `max-w-[1600px]`, form `max-w-2xl`.
 - Menghapus `mx-auto max-w-*` sempit di root halaman admin yang membuat konten mengumpul di tengah.
 - ANTIREGRESI: lebar dikontrol di Layout, bukan di tiap halaman.
-
 
 ## 0.13.2 — Menu sidebar bisa dilipat
 - Judul grup di sidebar dapat diklik untuk menampilkan/menyembunyikan item.
@@ -12,7 +18,6 @@
 
 ## 0.13.1 — Menu sidebar dikelompokkan
 - Sidebar staf dikelompokkan: Koleksi, Layanan, Data & inventaris, Literasi, Sistem.
-
 
 ## 0.13.0 — Jurnal baca
 - **Jurnal baca siswa** (`/siswa/jurnal`): catat judul, pengarang (opsional), tanggal, kesan/ringkasan; lihat tanggapan guru.

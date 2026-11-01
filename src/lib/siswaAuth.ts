@@ -12,6 +12,8 @@ export interface SiswaSesi {
   kelas: string
   nisn: string
   loginAt: number
+  /** true bila dibuka dari mode pratinjau admin/pustakawan (bukan login siswa asli). */
+  preview?: boolean
 }
 
 /** Daftar kelas SD yang biasa dipakai (dropdown login). */
@@ -81,5 +83,24 @@ export async function loginSiswa(siswa: SiswaDasar, sandiNisn: string): Promise<
 }
 
 export function logoutSiswa() {
+  hapusSesiSiswa()
+}
+
+/** Masuk mode pratinjau (admin/pustakawan melihat tampilan siswa). */
+export function masukModePratinjau(): SiswaSesi {
+  const sesi: SiswaSesi = {
+    id: 'preview-admin',
+    nama: 'Pratinjau Siswa',
+    kelas: '5A',
+    nisn: '0000000000',
+    loginAt: Date.now(),
+    preview: true,
+  }
+  simpanSesiSiswa(sesi)
+  return sesi
+}
+
+/** Keluar dari mode pratinjau dan kembali ke area admin. */
+export function keluarModePratinjau() {
   hapusSesiSiswa()
 }

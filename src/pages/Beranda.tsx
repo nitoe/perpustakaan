@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { collection, getCountFromServer, getDocs, query, where, type Timestamp } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../lib/firebase'
 import { NAMA_PERAN, bisaKelola } from '../lib/peran'
 import { tanggalHariIni } from '../lib/kunjungan'
+import { masukModePratinjau } from '../lib/siswaAuth'
 import { Badge, Notice, PageHeader, StatStrip, btnGhost } from '../components/ui'
 
 interface Ringkasan {
@@ -17,6 +18,7 @@ interface Ringkasan {
 
 export default function Beranda() {
   const { profil, peran } = useAuth()
+  const navigate = useNavigate()
   const [ringkasan, setRingkasan] = useState<Ringkasan | null>(null)
   const [galat, setGalat] = useState('')
   const kelola = bisaKelola(peran)
@@ -57,6 +59,11 @@ export default function Beranda() {
       batal = true
     }
   }, [peran])
+
+  function bukaPratinjauSiswa() {
+    masukModePratinjau()
+    navigate('/siswa')
+  }
 
   return (
     <div className="w-full">
@@ -99,6 +106,9 @@ export default function Beranda() {
               <Link to="/laporan" className={btnGhost}>
                 Laporan
               </Link>
+              <button type="button" onClick={bukaPratinjauSiswa} className={btnGhost}>
+                Lihat tampilan siswa
+              </button>
             </div>
           )}
           {(peran === 'pimpinan' || peran === 'admin' || peran === 'pustakawan') && !kelola && (
