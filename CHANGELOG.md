@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.14.1 — Rak Baca siswa bergaya carousel sampul
+- Rak Baca (`/siswa/baca`) diubah dari grid kartu teks menjadi **carousel horizontal sampul buku** (inspirasi Let's Read).
+- Bila tidak sedang mencari/filter: buku dikelompokkan per jenjang baca, masing-masing dalam carousel.
+- Kartu sampul besar (aspect 2/3), judul di bawah, hover shadow.
+- Filter tetap ada di atas (lebih ringkas).
+- ANTIREGRESI: tetap hanya buku `publik == true` + `bisaDibacaPublik()`; tautan tetap lewat fungsi aman.
+
 ## 0.14.0 — Mode pratinjau tampilan siswa + layout siswa lebih visual
 - **Mode pratinjau** (admin/pustakawan): tombol “Lihat tampilan siswa” di Beranda staf. Membuka area `/siswa` dengan sesi pratinjau (`preview: true`) tanpa perlu NISN.
 - Banner kuning + tombol “Kembali ke Admin” saat mode pratinjau aktif.
