@@ -163,7 +163,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
       const url = await unggahPdf(file, profil.uid)
       set('tautanDigital', url)
       set('formatDigital', 'pdf')
-      setInfo('PDF berhasil diunggah. Anda bisa membuat sampul otomatis dari halaman 1.')
+      set('publik', true)
+      setInfo('PDF berhasil diunggah. Buku ditandai publik agar muncul di Rak Baca siswa. Hapus centang jika berkas berhak cipta.')
     } catch (e) {
       setGalat(e instanceof Error ? e.message : 'Gagal mengunggah PDF.')
     }
@@ -464,11 +465,13 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
               </div>
             </>
           )}
-          <label className="flex items-start gap-2 text-sm">
+          <label className="flex items-start gap-3 rounded-lg border border-muh-200 bg-muh-50/70 p-3 text-sm">
             <input type="checkbox" className="mt-1" checked={f.publik} onChange={(e) => set('publik', e.target.checked)} />
             <span>
-              Tampilkan di katalog publik dan rak baca siswa{' '}
-              <span className="text-muted">(jangan centang berkas yang masih berhak cipta)</span>
+              <span className="font-medium text-muh-800">Tampilkan di katalog publik dan Rak Baca siswa</span>
+              <span className="mt-1 block text-xs text-muted">
+                Wajib dicentang agar buku muncul di Rak Baca dan Baru Saja. Jangan centang berkas yang masih berhak cipta.
+              </span>
             </span>
           </label>
         </div>

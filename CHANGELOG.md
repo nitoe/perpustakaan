@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.18 — Buku Storage otomatis ditandai publik
+- Buku yang diunggah PDF ke Storage tidak muncul di Rak Baca / Baru Saja bila centang “publik” tidak dicentang.
+- Setelah unggah PDF berhasil, form otomatis mencentang publik dan menampilkan pengingat.
+- Checkbox publik dibuat lebih menonjol (kotak berlatar).
+- Syarat tampil tetap: `publik == true`, jenis bukan `cetak`, dan tautan http/https.
+
 ## 0.14.17 — Slider zoom yang lebih halus
 - Tombol − / + diganti **slider** (50%–200%, langkah 5%).
 - Skala dihitung relatif terhadap ukuran pas layar (100% = pas, bukan langsung 125% sangat besar).
