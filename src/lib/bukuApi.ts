@@ -12,9 +12,10 @@ export interface HasilLookupBuku {
   isbn?: string
   sinopsis?: string
   bahasa?: string
+  jenjangBaca?: string
   /** URL sampul Open Library (opsional; tidak otomatis diunduh ke Firestore). */
   sampulUrl?: string
-  sumber: 'openlibrary'
+  sumber: 'openlibrary' | 'gemini'
 }
 
 function isbnBersih(s: string): string {
@@ -133,4 +134,159 @@ export async function cariJudul(q: string, batas = 8): Promise<HasilLookupBuku[]
       }
     })
     .filter(Boolean) as HasilLookupBuku[]
+}
+
+
+/** Model Gemini yang dicoba berurutan (sama pola Penilaian). */
+const MODEL_GEMINI = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
+
+function thinkingGemini(nama: string): Record<string, unknown> | undefined {
+  if (/^gemini-2\.5-/.test(nama)) return { thinkingBudget: 0 }
+  if (/^gemini-3/.test(nama)) return { thinkingLevel: 'low' }
+  return undefined
+}
+
+function ambilJson(teks: string): Record<string, unknown> {
+  const t = teks.trim()
+  const mulai = t.indexOf('{')
+  const akhir = t.lastIndexOf('}')
+  if (mulai < 0 || akhir <= mulai) throw new Error('Jawaban AI bukan JSON yang valid.')
+  return JSON.parse(t.slice(mulai, akhir + 1)) as Record<string, unknown>
+}
+
+/**
+ * Generate identitas buku dari judul saja lewat Gemini.
+ * Membutuhkan VITE_GEMINI_API_KEY di .env (sama key yang dipakai Penilaian bila diizinkan).
+ * Hasil selalu bisa diedit manual; jangan menganggap ISBN/sinopsis 100% akurat.
+ */
+export async function generateDariJudulAi(judul: string): Promise<HasilLookupBuku> {
+  const q = judul.trim()
+  if (q.length < 2) throw new Error('Isi judul (minimal 2 huruf) dulu.')
+
+  const apiKey = (import.meta.env.VITE_GEMINI_API_KEY as string | undefined)?.trim()
+  if (!apiKey) {
+    throw new Error(
+      'VITE_GEMINI_API_KEY belum diatur di .env. Salin key Gemini ke berkas .env lalu restart npm run dev.',
+    )
+  }
+
+  const sistem = `Anda asisten katalog perpustakaan sekolah dasar di Indonesia.
+Tugas: dari judul buku saja, isi metadata bibliografi sebaik mungkin.
+Aturan ketat:
+- Jawab HANYA JSON valid tanpa markdown dan tanpa penjelasan.
+- Jangan mengarang ISBN. Jika tidak yakin, biarkan isbn string kosong.
+- Sinopsis singkat (2–4 kalimat), netral, cocok untuk katalog sekolah.
+- Bahasa: "Indonesia" atau "Inggris" atau nama bahasa lain yang relevan.
+- Jenjang baca contoh: "Kelas 1-2", "Kelas 3-4", "Kelas 5-6", "Guru", atau kosong.
+- Tahun hanya angka 4 digit bila diketahui; jika tidak yakin null.
+- Pengarang dan penerbit: isi bila umum diketahui; jika tidak yakin string kosong.
+- Jangan menambah field di luar skema.`
+
+  const user = `Judul buku: ${q}
+
+Format JSON wajib:
+{"judul":"...","pengarang":"...","penerbit":"...","tahun":null,"isbn":"","sinopsis":"...","bahasa":"Indonesia","jenjangBaca":""}`
+
+  const gagal: string[] = []
+  let terakhir = 'Gemini tidak menjawab.'
+
+  for (const nama of MODEL_GEMINI) {
+    for (let percobaan = 0; percobaan < 2; percobaan++) {
+      const generationConfig: Record<string, unknown> = {
+        temperature: 0.3,
+        responseMimeType: 'application/json',
+        maxOutputTokens: 2048,
+      }
+      const thinking = thinkingGemini(nama)
+      if (thinking) generationConfig.thinkingConfig = thinking
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${nama}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: sistem }] },
+            contents: [{ role: 'user', parts: [{ text: user }] }],
+            generationConfig,
+          }),
+        },
+      )
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: { message?: string }
+        candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[]
+      }
+      if (!res.ok) {
+        terakhir = `Gemini (${nama}) ${res.status}: ${json?.error?.message || 'gagal'}`
+        if (res.status === 404) {
+          gagal.push(`${nama} 404`)
+          break
+        }
+        if ([429, 500, 503].includes(res.status)) {
+          if (percobaan === 0) {
+            await new Promise((r) => setTimeout(r, 1500))
+            continue
+          }
+          gagal.push(`${nama} ${res.status}`)
+          break
+        }
+        throw new Error(terakhir)
+      }
+      const kandidat = json?.candidates?.[0]
+      const teks = kandidat?.content?.parts?.map((p) => p.text || '').join('') || ''
+      if (!teks) {
+        terakhir =
+          `Gemini (${nama}) mengembalikan jawaban kosong` +
+          (kandidat?.finishReason ? ` (${kandidat.finishReason}).` : '.')
+        gagal.push(`${nama} kosong`)
+        break
+      }
+      let data: Record<string, unknown>
+      try {
+        data = ambilJson(teks)
+      } catch {
+        terakhir = `Gemini (${nama}) tidak mengembalikan JSON valid.`
+        gagal.push(`${nama} json`)
+        break
+      }
+
+      const judulOut = typeof data.judul === 'string' && data.judul.trim() ? data.judul.trim() : q
+      const pengarang =
+        typeof data.pengarang === 'string' && data.pengarang.trim() ? data.pengarang.trim() : undefined
+      const penerbit =
+        typeof data.penerbit === 'string' && data.penerbit.trim() ? data.penerbit.trim() : undefined
+      let tahun: number | undefined
+      if (typeof data.tahun === 'number' && data.tahun >= 1000 && data.tahun <= 2100) tahun = data.tahun
+      else if (typeof data.tahun === 'string') {
+        const y = Number(data.tahun.replace(/\D/g, '').slice(0, 4))
+        if (y >= 1000 && y <= 2100) tahun = y
+      }
+      const isbnRaw = typeof data.isbn === 'string' ? data.isbn.replace(/[^0-9Xx]/g, '') : ''
+      const isbn = isbnRaw.length >= 10 ? isbnRaw : undefined
+      const sinopsis =
+        typeof data.sinopsis === 'string' && data.sinopsis.trim()
+          ? data.sinopsis.trim().slice(0, 2000)
+          : undefined
+      const bahasa =
+        typeof data.bahasa === 'string' && data.bahasa.trim() ? data.bahasa.trim() : 'Indonesia'
+      const jenjangBaca =
+        typeof data.jenjangBaca === 'string' && data.jenjangBaca.trim()
+          ? data.jenjangBaca.trim()
+          : undefined
+
+      return {
+        judul: judulOut.slice(0, 300),
+        pengarang,
+        penerbit,
+        tahun,
+        isbn,
+        sinopsis,
+        bahasa,
+        jenjangBaca,
+        sumber: 'gemini',
+      }
+    }
+  }
+
+  throw new Error(gagal.length > 1 ? `${terakhir} (percobaan: ${gagal.join(', ')})` : terakhir)
 }

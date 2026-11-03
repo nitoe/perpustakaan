@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.19 — Generate identitas buku dari judul (Gemini)
+- Tombol **Generate AI (dari judul)** di form Tambah/Ubah buku: cukup isi judul, AI mengisi pengarang, penerbit, tahun, sinopsis, bahasa, jenjang baca (ISBN hanya jika model yakin).
+- Tetap tersedia **Cari ISBN** dan **Cari judul** (Open Library).
+- Membutuhkan `VITE_GEMINI_API_KEY` di `.env` (restart dev server setelah menambah).
+- Hasil AI selalu bisa diedit; peringatan di UI agar ISBN/sinopsis diperiksa sebelum simpan.
+
 ## 0.14.18 — Buku Storage otomatis ditandai publik
 - Buku yang diunggah PDF ke Storage tidak muncul di Rak Baca / Baru Saja bila centang “publik” tidak dicentang.
 - Setelah unggah PDF berhasil, form otomatis mencentang publik dan menampilkan pengingat.

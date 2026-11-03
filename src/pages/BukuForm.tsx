@@ -10,7 +10,7 @@ import {
   ubahBuku,
   type DataBuku,
 } from '../lib/katalog'
-import { cariJudul, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
+import { cariJudul, generateDariJudulAi, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
 import { KELAS_DDC, labelDdc } from '../lib/ddc'
 import { useKoleksi } from '../lib/useKoleksi'
 import type { Buku, FormatDigital, JenisKoleksi, KondisiBuku, Kategori } from '../lib/tipe'
@@ -104,9 +104,14 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
       isbn: h.isbn || s.isbn,
       sinopsis: h.sinopsis || s.sinopsis,
       bahasa: h.bahasa || s.bahasa || 'Indonesia',
+      jenjangBaca: h.jenjangBaca || s.jenjangBaca,
     }))
     setHasilCari([])
-    setInfo('Data dari Open Library diisi. Periksa dan lengkapi jika perlu.')
+    const sumber =
+      h.sumber === 'gemini'
+        ? 'Data dari Gemini AI diisi. Periksa keakuratan (terutama ISBN) sebelum simpan.'
+        : 'Data dari Open Library diisi. Periksa dan lengkapi jika perlu.'
+    setInfo(sumber)
   }
 
   async function dariIsbn() {
@@ -134,11 +139,28 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     setCariApi(true)
     try {
       const list = await cariJudul(q)
-      if (list.length === 0) setGalat('Tidak ada hasil. Coba kata kunci lain atau isi manual.')
+      if (list.length === 0) setGalat('Tidak ada hasil. Coba kata kunci lain, Generate AI, atau isi manual.')
       else if (list.length === 1) terapkanLookup(list[0]!)
       else setHasilCari(list)
     } catch (e) {
       setGalat(e instanceof Error ? e.message : 'Gagal mencari.')
+    }
+    setCariApi(false)
+  }
+
+  /** Generate identitas hanya dari judul lewat Gemini (tanpa ISBN). */
+  async function dariJudulAi() {
+    setGalat('')
+    setInfo('')
+    setHasilCari([])
+    const q = f.judul.trim()
+    if (q.length < 2) return setGalat('Isi judul (minimal 2 huruf) dulu, lalu tekan Generate AI.')
+    setCariApi(true)
+    try {
+      const h = await generateDariJudulAi(q)
+      terapkanLookup(h)
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : 'Gagal generate dengan AI.')
     }
     setCariApi(false)
   }
@@ -280,7 +302,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         <div className="card-soft space-y-3 p-4">
           <div className="text-sm font-medium">Bantuan isi data</div>
           <p className="text-xs text-muted">
-            Data dari Open Library (katalog publik). Judul Indonesia mungkin tidak lengkap — periksa sebelum simpan.
+            Cari ISBN / judul memakai Open Library. Generate AI memakai Gemini dari judul saja (cocok untuk buku
+            Indonesia yang jarang ada di katalog publik). Hasil AI wajib diperiksa sebelum simpan.
           </p>
           <div className="flex flex-wrap gap-2">
             <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariIsbn()}>
@@ -288,6 +311,9 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
             </button>
             <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariJudul()}>
               {cariApi ? 'Mencari…' : 'Cari judul'}
+            </button>
+            <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariJudulAi()}>
+              {cariApi ? 'Mencari…' : 'Generate AI (dari judul)'}
             </button>
           </div>
           {hasilCari.length > 0 && (
