@@ -11,14 +11,19 @@ function idDokumen(nisn: string, bukuId: string) {
   return `${nisn}_${bukuId}`.replace(/[^a-zA-Z0-9_-]/g, '_')
 }
 
+function halamanSah(n: unknown): number | null {
+  const h = Number(n)
+  return Number.isInteger(h) && h >= 1 ? h : null
+}
+
 /** Baca progress: Firestore dulu, lalu localStorage. */
 export async function bacaProgress(nisn: string, bukuId: string): Promise<number> {
   try {
     const ref = doc(db, 'perpus_progress', idDokumen(nisn, bukuId))
     const snap = await getDoc(ref)
     if (snap.exists()) {
-      const h = Number(snap.data().halaman)
-      if (Number.isInteger(h) && h >= 1) {
+      const h = halamanSah(snap.data().halaman)
+      if (h) {
         try {
           localStorage.setItem(kunciLokal(nisn, bukuId), String(h))
         } catch {
@@ -32,8 +37,8 @@ export async function bacaProgress(nisn: string, bukuId: string): Promise<number
   }
   try {
     const raw = localStorage.getItem(kunciLokal(nisn, bukuId))
-    const n = raw ? Number(raw) : 1
-    return Number.isInteger(n) && n >= 1 ? n : 1
+    const n = halamanSah(raw)
+    return n ?? 1
   } catch {
     return 1
   }

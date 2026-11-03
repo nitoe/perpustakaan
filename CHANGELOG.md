@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.14.14 — Zoom, layar penuh, dan perbaikan progress baca
+- **Bug progress:** saat modal dibuka, kode menyimpan halaman 1 sebelum progress tersimpan selesai dibaca, sehingga “lanjutkan” selalu kembali ke halaman awal.
+- **Perbaikan:** flag `siapSimpan` — progress baru ditulis setelah halaman awal dari server/lokal diterapkan.
+- **Zoom:** tombol − / + (75%–250%) di pembaca modal. Halaman di-render ulang sesuai skala.
+- **Layar penuh:** tombol “Layar penuh” memakai Fullscreen API browser.
+- ANTIREGRESI: jangan menyimpan progress sebelum halaman awal dimuat.
+
 ## 0.14.13 — Sampul dari berkas lokal + CORS Storage
 - **Sampul otomatis** sekarang dibuat dari berkas PDF yang baru dipilih (ArrayBuffer), bukan dengan mengambil ulang URL Storage. Menghindari error CORS saat membuat cover.
 - Tombol “Buat sampul dari halaman 1” aktif setelah berkas dipilih (sebelum atau sesudah unggah selesai).
