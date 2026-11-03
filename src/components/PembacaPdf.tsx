@@ -78,12 +78,6 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
   function berikutnya() {
     setHalaman((h) => Math.min(total, h + 1))
   }
-  function perbesar() {
-    setZoom((z) => Math.min(2.5, Math.round((z + 0.25) * 100) / 100))
-  }
-  function perkecil() {
-    setZoom((z) => Math.max(0.75, Math.round((z - 0.25) * 100) / 100))
-  }
 
   async function layarPenuh() {
     const el = wadah.current
@@ -122,8 +116,9 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
               alt={`Halaman ${halaman}`}
               className="rounded shadow-lg"
               style={{
-                width: zoom <= 1 ? 'min(100%, 42rem)' : `${Math.round(zoom * 100)}%`,
-                maxWidth: zoom <= 1 ? '100%' : 'none',
+                // 100% = pas di layar (maks 42rem). Slider 50–200 mengubah lebar relatif itu.
+                width: `min(${Math.round(zoom * 100)}%, ${Math.round(zoom * 42)}rem)`,
+                maxWidth: 'none',
                 height: 'auto',
               }}
               draggable={false}
@@ -150,25 +145,20 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
           Berikutnya
         </button>
         <span className="mx-1 h-5 w-px bg-white/20" />
-        <button
-          type="button"
-          onClick={perkecil}
-          disabled={zoom <= 0.75}
-          className="rounded-full bg-white/10 px-3 py-2 text-sm disabled:opacity-40 hover:bg-white/20"
-          title="Perkecil"
-        >
-          −
-        </button>
-        <span className="min-w-[3.5rem] text-center text-xs text-white/70">{Math.round(zoom * 100)}%</span>
-        <button
-          type="button"
-          onClick={perbesar}
-          disabled={zoom >= 2.5}
-          className="rounded-full bg-white/10 px-3 py-2 text-sm disabled:opacity-40 hover:bg-white/20"
-          title="Perbesar"
-        >
-          +
-        </button>
+        <label className="flex items-center gap-2 text-xs text-white/70">
+          <span>Zoom</span>
+          <input
+            type="range"
+            min={50}
+            max={200}
+            step={5}
+            value={Math.round(zoom * 100)}
+            onChange={(e) => setZoom(Number(e.target.value) / 100)}
+            className="w-28 accent-white"
+            aria-label="Zoom"
+          />
+          <span className="min-w-[2.5rem] text-right">{Math.round(zoom * 100)}%</span>
+        </label>
         <button
           type="button"
           onClick={() => void layarPenuh()}

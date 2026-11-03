@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.17 — Slider zoom yang lebih halus
+- Tombol − / + diganti **slider** (50%–200%, langkah 5%).
+- Skala dihitung relatif terhadap ukuran pas layar (100% = pas, bukan langsung 125% sangat besar).
+- Di atas 125% sekarang ikut membesar secara bertahap.
+- Area scroll tetap bisa digeser untuk melihat halaman utuh.
+
 ## 0.14.16 — Zoom tidak memotong halaman
 - Zoom 125%+ memotong bagian atas karena `transform: scale()` tidak memperbesar area scroll.
 - Zoom sekarang mengubah lebar layout gambar (`width` sesuai persentase). Area baca bisa digeser ke atas dan ke samping untuk melihat halaman utuh.
