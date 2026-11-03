@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { bisaDibacaPublik } from '../../lib/katalog'
@@ -169,14 +170,11 @@ function CarouselBuku({ daftar }: { daftar: Buku[] }) {
 }
 
 function KartuSampul({ buku: b }: { buku: Buku }) {
-  const url = bisaDibacaPublik(b)
-  if (!url) return null
+  if (!bisaDibacaPublik(b)) return null
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      to={`/siswa/baca/${b.id}`}
       className="group w-36 shrink-0 sm:w-40"
       title={b.judul}
     >
@@ -194,6 +192,6 @@ function KartuSampul({ buku: b }: { buku: Buku }) {
       {b.pengarang && (
         <div className="mt-0.5 truncate text-xs text-muted">{b.pengarang}</div>
       )}
-    </a>
+    </Link>
   )
 }

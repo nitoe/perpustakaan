@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.2 — Halaman detail bacaan siswa yang lebih indah
+- Halaman baru `/siswa/baca/:id` (`SiswaBacaDetail`): sampul besar, judul, pengarang, sinopsis, dan tombol “Baca Sekarang” yang menonjol.
+- Kartu di Rak Baca sekarang mengarah ke halaman detail (bukan langsung ke tautan luar).
+- Tautan bacaan tetap aman lewat `bisaDibacaPublik()` dan dibuka di tab baru.
+- ANTIREGRESI: route `baca/:id` dideklarasikan setelah `baca` agar tidak bentrok; halaman detail hanya menampilkan buku yang lolos `bisaDibacaPublik()`.
+
 ## 0.14.1 — Rak Baca siswa bergaya carousel sampul
 - Rak Baca (`/siswa/baca`) diubah dari grid kartu teks menjadi **carousel horizontal sampul buku** (inspirasi Let's Read).
 - Bila tidak sedang mencari/filter: buku dikelompokkan per jenjang baca, masing-masing dalam carousel.

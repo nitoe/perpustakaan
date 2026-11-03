@@ -30,6 +30,7 @@ import SiswaMasuk from './pages/siswa/SiswaMasuk'
 import SiswaLayout from './pages/siswa/SiswaLayout'
 import SiswaBeranda from './pages/siswa/SiswaBeranda'
 import SiswaRakBaca from './pages/siswa/SiswaRakBaca'
+import SiswaBacaDetail from './pages/siswa/SiswaBacaDetail'
 import SiswaPinjaman from './pages/siswa/SiswaPinjaman'
 import SiswaJurnal from './pages/siswa/SiswaJurnal'
 
@@ -62,6 +63,7 @@ export default function App() {
       <Route path="/siswa" element={<SiswaLayout />}>
         <Route index element={<SiswaBeranda />} />
         <Route path="baca" element={<SiswaRakBaca />} />
+        <Route path="baca/:id" element={<SiswaBacaDetail />} />
         <Route path="pinjaman" element={<SiswaPinjaman />} />
         <Route path="jurnal" element={<SiswaJurnal />} />
       </Route>
