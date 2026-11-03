@@ -110,7 +110,9 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     const sumber =
       h.sumber === 'gemini'
         ? 'Data dari Gemini AI diisi. Periksa keakuratan (terutama ISBN) sebelum simpan.'
-        : 'Data dari Open Library diisi. Periksa dan lengkapi jika perlu.'
+        : h.sumber === 'googlebooks'
+          ? 'Data dari Google Books diisi. Periksa dan lengkapi jika perlu.'
+          : 'Data dari Open Library diisi. Periksa dan lengkapi jika perlu.'
     setInfo(sumber)
   }
 
@@ -123,7 +125,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     setCariApi(true)
     try {
       const h = await lookupIsbn(isbn)
-      if (!h) setGalat('ISBN tidak ditemukan di Open Library. Isi manual atau coba judul.')
+      if (!h) setGalat('ISBN tidak ditemukan di Open Library maupun Google Books. Isi judul lalu Generate AI, atau isi manual.')
       else terapkanLookup(h)
     } catch (e) {
       setGalat(e instanceof Error ? e.message : 'Gagal menghubungi Open Library.')
@@ -302,8 +304,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         <div className="card-soft space-y-3 p-4">
           <div className="text-sm font-medium">Bantuan isi data</div>
           <p className="text-xs text-muted">
-            Cari ISBN / judul memakai Open Library. Generate AI memakai Gemini dari judul saja (cocok untuk buku
-            Indonesia yang jarang ada di katalog publik). Hasil AI wajib diperiksa sebelum simpan.
+            Cari ISBN memakai Open Library lalu Google Books. Cari judul memakai Open Library. Generate AI
+            memakai Gemini (gemini-3.1-flash-lite) dari judul saja — cocok untuk buku Indonesia. Hasil wajib diperiksa.
           </p>
           <div className="flex flex-wrap gap-2">
             <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariIsbn()}>

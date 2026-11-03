@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.14.20 — Perbaikan model Gemini + lookup ISBN
+- Model AI diganti ke **gemini-3.1-flash-lite** dan **gemini-3.5-flash-lite** (model murah yang tersedia di API key sekolah). Model lama (2.5/2.0/1.5) mengembalikan 404.
+- Lookup ISBN: bila Open Library 404 (umum untuk ISBN Indonesia), otomatis mencoba **Google Books**.
+- Pesan error ISBN diperjelas; sarankan Generate AI bila katalog publik kosong.
+
 ## 0.14.19 — Generate identitas buku dari judul (Gemini)
 - Tombol **Generate AI (dari judul)** di form Tambah/Ubah buku: cukup isi judul, AI mengisi pengarang, penerbit, tahun, sinopsis, bahasa, jenjang baca (ISBN hanya jika model yakin).
 - Tetap tersedia **Cari ISBN** dan **Cari judul** (Open Library).

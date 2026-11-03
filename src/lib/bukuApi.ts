@@ -15,7 +15,7 @@ export interface HasilLookupBuku {
   jenjangBaca?: string
   /** URL sampul Open Library (opsional; tidak otomatis diunduh ke Firestore). */
   sampulUrl?: string
-  sumber: 'openlibrary' | 'gemini'
+  sumber: 'openlibrary' | 'googlebooks' | 'gemini'
 }
 
 function isbnBersih(s: string): string {
@@ -43,7 +43,52 @@ function namaPengarang(authors: unknown): string | undefined {
   return nama.length ? nama.join('; ') : undefined
 }
 
-/** Lookup by ISBN (10 atau 13). */
+
+/** Lookup Google Books by ISBN (tanpa API key; kuota anonim). */
+async function lookupIsbnGoogle(isbn: string): Promise<HasilLookupBuku | null> {
+  const id = isbnBersih(isbn)
+  if (id.length < 10) return null
+  const url = new URL('https://www.googleapis.com/books/v1/volumes')
+  url.searchParams.set('q', `isbn:${id}`)
+  url.searchParams.set('maxResults', '1')
+  const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } })
+  if (!res.ok) return null
+  const data = (await res.json()) as {
+    items?: {
+      volumeInfo?: {
+        title?: string
+        authors?: string[]
+        publisher?: string
+        publishedDate?: string
+        description?: string
+        language?: string
+        industryIdentifiers?: { type?: string; identifier?: string }[]
+        imageLinks?: { thumbnail?: string; smallThumbnail?: string }
+      }
+    }[]
+  }
+  const info = data.items?.[0]?.volumeInfo
+  if (!info?.title) return null
+  const ids = info.industryIdentifiers ?? []
+  const isbn13 = ids.find((x) => x.type === 'ISBN_13')?.identifier
+  const isbn10 = ids.find((x) => x.type === 'ISBN_10')?.identifier
+  const tahun = ambilTahun(info.publishedDate)
+  const bahasa =
+    info.language === 'id' ? 'Indonesia' : info.language === 'en' ? 'Inggris' : info.language
+  return {
+    judul: info.title,
+    pengarang: info.authors?.join('; '),
+    penerbit: info.publisher,
+    tahun,
+    isbn: isbn13 || isbn10 || id,
+    sinopsis: info.description?.slice(0, 2000),
+    bahasa,
+    sampulUrl: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail,
+    sumber: 'googlebooks',
+  }
+}
+
+/** Lookup by ISBN (10 atau 13). Open Library dulu, lalu Google Books. */
 export async function lookupIsbn(isbn: string): Promise<HasilLookupBuku | null> {
   const id = isbnBersih(isbn)
   if (id.length < 10) throw new Error('ISBN minimal 10 digit.')
@@ -51,8 +96,20 @@ export async function lookupIsbn(isbn: string): Promise<HasilLookupBuku | null> 
   const res = await fetch(`https://openlibrary.org/isbn/${encodeURIComponent(id)}.json`, {
     headers: { Accept: 'application/json' },
   })
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error(`Open Library tidak merespons (${res.status}). Coba lagi nanti.`)
+  if (res.status === 404) {
+    // Banyak ISBN Indonesia tidak ada di Open Library — coba Google Books
+    return lookupIsbnGoogle(id)
+  }
+  if (!res.ok) {
+    // Open Library error: tetap coba Google Books
+    try {
+      const g = await lookupIsbnGoogle(id)
+      if (g) return g
+    } catch {
+      /* abaikan */
+    }
+    throw new Error(`Open Library tidak merespons (${res.status}). Coba lagi nanti.`)
+  }
 
   const d = (await res.json()) as Record<string, unknown>
   const judul = typeof d.title === 'string' ? d.title : undefined
@@ -138,7 +195,7 @@ export async function cariJudul(q: string, batas = 8): Promise<HasilLookupBuku[]
 
 
 /** Model Gemini yang dicoba berurutan (sama pola Penilaian). */
-const MODEL_GEMINI = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
+const MODEL_GEMINI = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']
 
 function thinkingGemini(nama: string): Record<string, unknown> | undefined {
   if (/^gemini-2\.5-/.test(nama)) return { thinkingBudget: 0 }
