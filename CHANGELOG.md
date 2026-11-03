@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.14.9 — Pembaca PDF modal + unggah ke Storage + progress
+- **Unggah PDF** ke Firebase Storage dari form Tambah/Ubah Buku (maks. 40 MB). Tautan otomatis terisi.
+- **Sampul otomatis** dari halaman 1 PDF (tombol “Buat sampul dari halaman 1”).
+- **Pembaca modal** (fullscreen) untuk format PDF: navigasi Sebelumnya/Berikutnya, indikator halaman, tanpa tombol unduh/cetak.
+- Progress halaman terakhir disimpan di `localStorage` per NISN + buku. Tombol menjadi “Lanjutkan dari halaman N”.
+- Format non-PDF tetap dibuka di tab baru.
+- **Catatan instalasi:** jalankan `npm install pdfjs-dist` sebelum build.
+- **Storage rules:** pastikan staf boleh tulis ke `perpus_digital/{uid}/**` dan baca publik diizinkan untuk berkas yang dipublikkan.
+- ANTIREGRESI: reader hanya untuk PDF yang lolos `bisaDibacaPublik()`; progress tidak ditulis ke Firestore di tahap ini.
+
 ## 0.14.8 — Lebar penuh untuk form buku dan Pengaturan
 - Halaman `/katalog/baru`, `/katalog/:id/ubah`, dan `/pengaturan` sekarang memakai `max-w-[1600px]` (lebar penuh area kerja), sama seperti halaman data lain.
 - Menghapus pembatasan `max-w-2xl` / `max-w-4xl` yang membuat form kecil di tengah saat zoom atau layar lebar.

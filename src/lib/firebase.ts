@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 /** Konfigurasi dibaca dari .env (lihat .env.example). Project sama dengan aplikasi Penilaian. */
 const firebaseConfig = {
@@ -26,6 +27,8 @@ export const db = isNewApp
       localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
     })
   : getFirestore(app)
+
+export const storage = getStorage(app)
 
 export const isFirebaseConfigured =
   Boolean(import.meta.env.VITE_FIREBASE_API_KEY) &&

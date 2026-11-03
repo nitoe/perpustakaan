@@ -16,6 +16,8 @@ import { useKoleksi } from '../lib/useKoleksi'
 import type { Buku, FormatDigital, JenisKoleksi, KondisiBuku, Kategori } from '../lib/tipe'
 import { Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 import Sampul from '../components/Sampul'
+import { unggahPdf } from '../lib/storageDigital'
+import { buatSampulDariPdf } from '../lib/pdf'
 
 export default function BukuForm() {
   const { id } = useParams<{ id: string }>()
@@ -84,6 +86,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
   const [menyimpan, setMenyimpan] = useState(false)
   const [cariApi, setCariApi] = useState(false)
   const [hasilCari, setHasilCari] = useState<HasilLookupBuku[]>([])
+  const [unggahProses, setUnggahProses] = useState(false)
+  const [sampulProses, setSampulProses] = useState(false)
 
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }))
   const adaDigital = f.jenis !== 'cetak'
@@ -146,6 +150,41 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     } catch (e) {
       setGalat(e instanceof Error ? e.message : 'Gagal memproses gambar.')
     }
+  }
+
+  async function pilihPdf(file: File | undefined) {
+    if (!file || !profil?.uid) return
+    setUnggahProses(true)
+    setGalat('')
+    setInfo('')
+    try {
+      const url = await unggahPdf(file, profil.uid)
+      set('tautanDigital', url)
+      set('formatDigital', 'pdf')
+      setInfo('PDF berhasil diunggah. Anda bisa membuat sampul otomatis dari halaman 1.')
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : 'Gagal mengunggah PDF.')
+    }
+    setUnggahProses(false)
+  }
+
+  async function buatSampulOtomatis() {
+    const url = f.tautanDigital.trim()
+    if (!url) return setGalat('Unggah atau isi tautan PDF dulu.')
+    setSampulProses(true)
+    setGalat('')
+    try {
+      const dataUrl = await buatSampulDariPdf(url)
+      setFotoBaru(dataUrl)
+      setInfo('Sampul dibuat dari halaman 1 PDF.')
+    } catch (e) {
+      setGalat(
+        e instanceof Error
+          ? e.message
+          : 'Gagal membuat sampul. Pastikan PDF dapat diakses (CORS).',
+      )
+    }
+    setSampulProses(false)
   }
 
   async function simpan(e: FormEvent) {
@@ -364,32 +403,58 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
             </select>
           </Field>
           {adaDigital && (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="sm:col-span-2">
-                <Field label="Tautan bacaan digital *" hint="Google Drive, YouTube, BSE, dll.">
-                  <input
+            <>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="sm:col-span-2">
+                  <Field label="Tautan bacaan digital *" hint="Isi otomatis bila PDF diunggah ke Storage.">
+                    <input
+                      className={inputCls}
+                      value={f.tautanDigital}
+                      onChange={(e) => set('tautanDigital', e.target.value)}
+                      placeholder="https://"
+                      inputMode="url"
+                    />
+                  </Field>
+                </div>
+                <Field label="Format">
+                  <select
                     className={inputCls}
-                    value={f.tautanDigital}
-                    onChange={(e) => set('tautanDigital', e.target.value)}
-                    placeholder="https://"
-                    inputMode="url"
-                  />
+                    value={f.formatDigital}
+                    onChange={(e) => set('formatDigital', e.target.value as FormatDigital)}
+                  >
+                    {FORMAT.map((x) => (
+                      <option key={x.nilai} value={x.nilai}>
+                        {x.label}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
               </div>
-              <Field label="Format">
-                <select
-                  className={inputCls}
-                  value={f.formatDigital}
-                  onChange={(e) => set('formatDigital', e.target.value as FormatDigital)}
-                >
-                  {FORMAT.map((x) => (
-                    <option key={x.nilai} value={x.nilai}>
-                      {x.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
+
+              <div className="rounded-lg border border-dashed border-border p-3">
+                <div className="text-sm font-medium">Unggah PDF ke Storage</div>
+                <p className="mt-1 text-xs text-muted">
+                  Disarankan agar pembaca modal dan sampul otomatis stabil. Maks. 40 MB.
+                </p>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  disabled={unggahProses}
+                  onChange={(e) => void pilihPdf(e.target.files?.[0])}
+                  className="mt-2 block w-full text-sm"
+                />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={btnGhost}
+                    disabled={sampulProses || !f.tautanDigital}
+                    onClick={() => void buatSampulOtomatis()}
+                  >
+                    {sampulProses ? 'Membuat sampul…' : 'Buat sampul dari halaman 1'}
+                  </button>
+                </div>
+              </div>
+            </>
           )}
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={f.publik} onChange={(e) => set('publik', e.target.checked)} />

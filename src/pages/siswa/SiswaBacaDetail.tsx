@@ -6,6 +6,9 @@ import { bisaDibacaPublik } from '../../lib/katalog'
 import type { Buku } from '../../lib/tipe'
 import { Notice } from '../../components/ui'
 import Sampul from '../../components/Sampul'
+import PembacaPdf from '../../components/PembacaPdf'
+import { useSiswa } from '../../context/SiswaContext'
+import { bacaProgress } from '../../lib/progressBaca'
 
 const NAMA_FORMAT: Record<string, string> = {
   pdf: 'PDF',
@@ -17,9 +20,11 @@ const NAMA_FORMAT: Record<string, string> = {
 /** Halaman detail bacaan siswa — lebih hangat dan lega. */
 export default function SiswaBacaDetail() {
   const { id = '' } = useParams<{ id: string }>()
+  const { sesi } = useSiswa()
   const [b, setB] = useState<Buku | null>(null)
   const [loading, setLoading] = useState(true)
   const [galat, setGalat] = useState('')
+  const [bukaPembaca, setBukaPembaca] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -67,6 +72,9 @@ export default function SiswaBacaDetail() {
   }
 
   const url = bisaDibacaPublik(b)!
+  const adalahPdf = b.formatDigital === 'pdf' || url.toLowerCase().includes('.pdf')
+  const nisn = sesi?.nisn ?? 'tamu'
+  const progress = adalahPdf ? bacaProgress(nisn, b.id) : 1
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -115,20 +123,47 @@ export default function SiswaBacaDetail() {
           )}
 
           <div className="mt-8">
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full bg-muh-600 px-10 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-muh-700 hover:shadow"
-            >
-              Baca Sekarang
-            </a>
-            <p className="mt-3 text-xs text-muted">
-              Bacaan akan terbuka di tab baru.
-            </p>
+            {adalahPdf ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setBukaPembaca(true)}
+                  className="inline-flex items-center justify-center rounded-full bg-muh-600 px-10 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-muh-700 hover:shadow"
+                >
+                  {progress > 1 ? `Lanjutkan dari halaman ${progress}` : 'Baca Sekarang'}
+                </button>
+                <p className="mt-3 text-xs text-muted">
+                  Bacaan dibuka di dalam aplikasi. Progress halaman terakhir disimpan di perangkat ini.
+                </p>
+              </>
+            ) : (
+              <>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-full bg-muh-600 px-10 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-muh-700 hover:shadow"
+                >
+                  Baca Sekarang
+                </a>
+                <p className="mt-3 text-xs text-muted">
+                  Bacaan akan terbuka di tab baru.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {bukaPembaca && adalahPdf && (
+        <PembacaPdf
+          url={url}
+          judul={b.judul}
+          nisn={nisn}
+          bukuId={b.id}
+          onTutup={() => setBukaPembaca(false)}
+        />
+      )}
     </div>
   )
 }
