@@ -26,12 +26,10 @@ const HALAMAN_LEBAR = [
   '/kategori',
   '/usulan',
   '/jurnal',
+  '/pengaturan',
 ]
 
-/** Form ringkas — kolom terbaca, tidak melebar sia-sia. */
-const HALAMAN_SEMPIT = ['/pengaturan']
-
-/** Form buku (tambah/ubah) — lebar sedang agar tidak kecil di tengah saat zoom. */
+/** Form buku (tambah/ubah) — lebar sedang. */
 function halamanFormBuku(pathname: string): boolean {
   return pathname === '/katalog/baru' || /^\/katalog\/[^/]+\/ubah$/.test(pathname)
 }
@@ -182,15 +180,13 @@ export default function Layout() {
       <main className="min-w-0 flex-1 p-4 pb-24 sm:p-5 lg:p-6 lg:pb-6 print:p-0">
         <div
           className={`mx-auto w-full ${
-            HALAMAN_SEMPIT.some((p) => lokasi.pathname === p || lokasi.pathname.startsWith(p + '/'))
-              ? 'max-w-2xl'
-              : halamanFormBuku(lokasi.pathname)
-                ? 'max-w-4xl'
-                : HALAMAN_LEBAR.some(
-                      (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
-                    ) || lokasi.pathname === '/'
-                  ? 'max-w-[1600px]'
-                  : 'max-w-6xl'
+            halamanFormBuku(lokasi.pathname)
+              ? 'max-w-4xl'
+              : HALAMAN_LEBAR.some(
+                    (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
+                  ) || lokasi.pathname === '/'
+                ? 'max-w-[1600px]'
+                : 'max-w-6xl'
           }`}
         >
           <Outlet />

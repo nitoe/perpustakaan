@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.7 — Lebar halaman Pengaturan + perbaikan tombol “Kembali ke Admin”
+- Halaman **Pengaturan** tidak lagi `max-w-2xl`. Sekarang mengikuti lebar penuh area kerja (`max-w-[1600px]`), sama seperti halaman data lain.
+- **Bug “Kembali ke Admin”:** setelah sesi pratinjau dihapus, layout langsung re-render dan mengarahkan ke `/siswa/masuk` sebelum navigasi ke dashboard admin selesai.
+- **Perbaikan:** tambah flag `sedangKeluar` agar redirect ke login tidak terjadi saat keluar pratinjau. Storage dan state dibersihkan, lalu `navigate('/', { replace: true })`.
+- ANTIREGRESI: tombol kembali pratinjau tidak boleh memicu redirect ke login siswa.
+
 ## 0.14.6 — Lebar halaman tambah/ubah buku
 - Halaman `/katalog/baru` dan `/katalog/:id/ubah` tidak lagi dipaksa `max-w-2xl`.
 - Sekarang memakai `max-w-4xl` agar tidak terlihat kecil di tengah saat zoom atau layar lebar, sekaligus tetap nyaman dibaca.
