@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.14.16 — Zoom tidak memotong halaman
+- Zoom 125%+ memotong bagian atas karena `transform: scale()` tidak memperbesar area scroll.
+- Zoom sekarang mengubah lebar layout gambar (`width` sesuai persentase). Area baca bisa digeser ke atas dan ke samping untuk melihat halaman utuh.
+- Zoom 100% tetap pas di layar.
+
 ## 0.14.15 — Zoom pembaca benar-benar membesarkan
 - Zoom sebelumnya tidak terlihat karena gambar dibatasi `max-h-full max-w-full`.
 - Zoom sekarang memakai CSS `transform: scale()` dan mengizinkan gambar melebihi layar (bisa digeser).

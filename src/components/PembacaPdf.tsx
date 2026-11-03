@@ -112,23 +112,24 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
         </div>
       </header>
 
-      <div className="relative flex flex-1 items-center justify-center overflow-auto p-4">
-        {loading && <div className="text-sm text-white/80">Memuat bacaan…</div>}
-        {galat && <div className="text-sm text-red-300">{galat}</div>}
-        {gambar && !galat && (
-          <img
-            src={gambar}
-            alt={`Halaman ${halaman}`}
-            className="rounded shadow-lg"
-            style={{
-              transform: `scale(${zoom})`,
-              transformOrigin: 'center center',
-              maxHeight: zoom <= 1 ? '100%' : 'none',
-              maxWidth: zoom <= 1 ? '100%' : 'none',
-            }}
-            draggable={false}
-          />
-        )}
+      <div className="relative flex-1 overflow-auto p-4">
+        <div className="flex min-h-full min-w-full items-start justify-center">
+          {loading && <div className="text-sm text-white/80">Memuat bacaan…</div>}
+          {galat && <div className="text-sm text-red-300">{galat}</div>}
+          {gambar && !galat && (
+            <img
+              src={gambar}
+              alt={`Halaman ${halaman}`}
+              className="rounded shadow-lg"
+              style={{
+                width: zoom <= 1 ? 'min(100%, 42rem)' : `${Math.round(zoom * 100)}%`,
+                maxWidth: zoom <= 1 ? '100%' : 'none',
+                height: 'auto',
+              }}
+              draggable={false}
+            />
+          )}
+        </div>
       </div>
 
       <footer className="flex flex-wrap items-center justify-center gap-2 border-t border-white/10 px-4 py-3">
