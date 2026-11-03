@@ -15,7 +15,7 @@ const NAMA_FORMAT: Record<FormatDigital, string> = {
   web: 'Halaman web',
 }
 
-/** Rak baca untuk siswa — tampilan visual (carousel sampul) terinspirasi Let's Read. */
+/** Rak baca untuk siswa — carousel sampul yang lebih hangat. */
 export default function SiswaRakBaca() {
   const { sesi } = useSiswa()
   const [data, setData] = useState<Buku[]>([])
@@ -65,7 +65,6 @@ export default function SiswaRakBaca() {
       .sort((a, b) => a.judul.localeCompare(b.judul, 'id'))
   }, [siap, cari, format, jenjang])
 
-  // Kelompokkan untuk tampilan carousel (bila tidak sedang mencari)
   const kelompok = useMemo(() => {
     if (cari.trim() || format || jenjang) return null
     const map = new Map<string, Buku[]>()
@@ -78,10 +77,10 @@ export default function SiswaRakBaca() {
   }, [siap, cari, format, jenjang])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-muh-800 sm:text-3xl">Rak Baca</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-2xl font-semibold tracking-tight text-muh-800 sm:text-3xl">Rak Baca</h1>
+        <p className="mt-1.5 text-sm text-muted">
           {sesi?.preview
             ? 'Mode pratinjau · Bacaan digital sekolah'
             : sesi
@@ -92,7 +91,6 @@ export default function SiswaRakBaca() {
 
       {galat && <Notice tipe="error">{galat}</Notice>}
 
-      {/* Filter ringkas */}
       <div className="card-soft grid gap-3 p-4 sm:grid-cols-3">
         <input
           className={inputCls}
@@ -139,19 +137,17 @@ export default function SiswaRakBaca() {
       ) : hasil.length === 0 ? (
         <Notice>Tidak ada bacaan yang cocok dengan pencarian.</Notice>
       ) : kelompok ? (
-        // Tampilan carousel per jenjang
-        <div className="space-y-8">
+        <div className="space-y-10">
           {kelompok.map(([nama, daftar]) => (
             <section key={nama}>
-              <h2 className="mb-3 text-lg font-semibold text-muh-800">{nama}</h2>
+              <h2 className="mb-4 text-lg font-semibold text-muh-800">{nama}</h2>
               <CarouselBuku daftar={daftar} />
             </section>
           ))}
         </div>
       ) : (
-        // Hasil pencarian / filter
         <div>
-          <div className="mb-3 text-sm text-muted">{hasil.length} bacaan ditemukan</div>
+          <div className="mb-4 text-sm text-muted">{hasil.length} bacaan ditemukan</div>
           <CarouselBuku daftar={hasil} />
         </div>
       )}
@@ -178,7 +174,7 @@ function KartuSampul({ buku: b }: { buku: Buku }) {
       className="group w-36 shrink-0 sm:w-40"
       title={b.judul}
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-muh-50 shadow-sm transition group-hover:shadow-md">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl bg-muh-50 shadow-sm ring-1 ring-black/5 transition group-hover:shadow-md group-hover:ring-muh-200">
         <Sampul id={b.coverId} className="h-full w-full object-cover" />
         {!b.coverId && (
           <div className="absolute inset-0 flex items-center justify-center p-2 text-center text-xs font-medium text-muh-700">
@@ -186,7 +182,7 @@ function KartuSampul({ buku: b }: { buku: Buku }) {
           </div>
         )}
       </div>
-      <div className="mt-2 line-clamp-2 text-sm font-medium text-[#1a1d33] group-hover:text-muh-600">
+      <div className="mt-2.5 line-clamp-2 text-sm font-medium leading-snug text-[#1a1d33] group-hover:text-muh-600">
         {b.judul}
       </div>
       {b.pengarang && (

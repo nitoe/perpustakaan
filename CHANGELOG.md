@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.14.4 — Penyesuaian UI area siswa (lebih hangat & lega)
+- Header siswa: logo lebih besar, nav lebih nyaman, latar `#f8f7ff`.
+- Kartu aksi Beranda: hover lift halus, gradient lebih lembut, spacing lebih lega.
+- Carousel “Baru Saja” dan Rak Baca: sampul `rounded-2xl` + ring halus.
+- Halaman detail bacaan: sampul lebih besar, tombol “Baca Sekarang” lebih menonjol, spacing lebih nyaman.
+- Tipografi judul lebih rapat (`tracking-tight`).
+- Tidak ada perubahan logika data atau keamanan.
+
 ## 0.14.3 — Halaman Pinjaman & Jurnal lebih visual + “Baru Saja” di Beranda
 - **Pinjaman saya**: kartu visual dengan status terlambat menonjol; mode pratinjau menampilkan pesan tanpa data.
 - **Jurnal baca**: daftar entry lebih rapi, form tulis lebih nyaman, mode pratinjau tidak menampilkan form/data.

@@ -14,7 +14,7 @@ const NAMA_FORMAT: Record<string, string> = {
   web: 'Halaman web',
 }
 
-/** Halaman detail bacaan siswa — visual dan lebih indah. */
+/** Halaman detail bacaan siswa — lebih hangat dan lega. */
 export default function SiswaBacaDetail() {
   const { id = '' } = useParams<{ id: string }>()
   const [b, setB] = useState<Buku | null>(null)
@@ -52,7 +52,7 @@ export default function SiswaBacaDetail() {
   }, [id])
 
   if (loading) {
-    return <div className="py-12 text-center text-sm text-muted">Memuat bacaan…</div>
+    return <div className="py-16 text-center text-sm text-muted">Memuat bacaan…</div>
   }
 
   if (!b) {
@@ -72,14 +72,14 @@ export default function SiswaBacaDetail() {
     <div className="mx-auto max-w-3xl">
       <Link
         to="/siswa/baca"
-        className="mb-6 inline-flex items-center text-sm font-medium text-muh-600 hover:underline"
+        className="mb-8 inline-flex items-center text-sm font-medium text-muh-600 hover:underline"
       >
         ← Rak Baca
       </Link>
 
-      <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
-        <div className="w-48 shrink-0 sm:w-56">
-          <div className="aspect-[2/3] overflow-hidden rounded-2xl bg-muh-50 shadow-lg">
+      <div className="flex flex-col items-center gap-10 sm:flex-row sm:items-start">
+        <div className="w-52 shrink-0 sm:w-60">
+          <div className="aspect-[2/3] overflow-hidden rounded-3xl bg-muh-50 shadow-lg ring-1 ring-black/5">
             <Sampul id={b.coverId} className="h-full w-full object-cover" />
             {!b.coverId && (
               <div className="flex h-full items-center justify-center p-4 text-center text-sm font-medium text-muh-700">
@@ -90,26 +90,26 @@ export default function SiswaBacaDetail() {
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">
-          <h1 className="text-2xl font-semibold text-muh-800 sm:text-3xl">{b.judul}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-muh-800 sm:text-3xl">{b.judul}</h1>
           {b.pengarang && (
             <p className="mt-2 text-base text-muted">oleh {b.pengarang}</p>
           )}
 
-          <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
+          <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
             {b.jenjangBaca && (
-              <span className="rounded-full bg-muh-50 px-3 py-1 text-xs font-medium text-muh-700">
+              <span className="rounded-full bg-muh-50 px-3.5 py-1 text-xs font-medium text-muh-700">
                 {b.jenjangBaca}
               </span>
             )}
             {b.formatDigital && (
-              <span className="rounded-full bg-muh-50 px-3 py-1 text-xs font-medium text-muh-700">
+              <span className="rounded-full bg-muh-50 px-3.5 py-1 text-xs font-medium text-muh-700">
                 {NAMA_FORMAT[b.formatDigital] ?? b.formatDigital}
               </span>
             )}
           </div>
 
           {b.sinopsis && (
-            <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-[#2b2f4a]">
+            <p className="mt-6 whitespace-pre-line text-sm leading-relaxed text-[#2b2f4a]">
               {b.sinopsis}
             </p>
           )}
@@ -119,7 +119,7 @@ export default function SiswaBacaDetail() {
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full bg-muh-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-muh-700"
+              className="inline-flex items-center justify-center rounded-full bg-muh-600 px-10 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-muh-700 hover:shadow"
             >
               Baca Sekarang
             </a>
