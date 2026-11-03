@@ -29,7 +29,12 @@ const HALAMAN_LEBAR = [
 ]
 
 /** Form ringkas — kolom terbaca, tidak melebar sia-sia. */
-const HALAMAN_SEMPIT = ['/pengaturan', '/katalog/baru']
+const HALAMAN_SEMPIT = ['/pengaturan']
+
+/** Form buku (tambah/ubah) — lebar sedang agar tidak kecil di tengah saat zoom. */
+function halamanFormBuku(pathname: string): boolean {
+  return pathname === '/katalog/baru' || /^\/katalog\/[^/]+\/ubah$/.test(pathname)
+}
 
 const STORAGE_KEY = 'perpus.menu.buka'
 
@@ -178,13 +183,14 @@ export default function Layout() {
         <div
           className={`mx-auto w-full ${
             HALAMAN_SEMPIT.some((p) => lokasi.pathname === p || lokasi.pathname.startsWith(p + '/'))
-              || /^\/katalog\/[^/]+\/ubah$/.test(lokasi.pathname)
               ? 'max-w-2xl'
-              : HALAMAN_LEBAR.some(
-                    (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
-                  ) || lokasi.pathname === '/'
-                ? 'max-w-[1600px]'
-                : 'max-w-6xl'
+              : halamanFormBuku(lokasi.pathname)
+                ? 'max-w-4xl'
+                : HALAMAN_LEBAR.some(
+                      (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
+                    ) || lokasi.pathname === '/'
+                  ? 'max-w-[1600px]'
+                  : 'max-w-6xl'
           }`}
         >
           <Outlet />

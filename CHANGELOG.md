@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.6 — Lebar halaman tambah/ubah buku
+- Halaman `/katalog/baru` dan `/katalog/:id/ubah` tidak lagi dipaksa `max-w-2xl`.
+- Sekarang memakai `max-w-4xl` agar tidak terlihat kecil di tengah saat zoom atau layar lebar, sekaligus tetap nyaman dibaca.
+- Pengaturan tetap `max-w-2xl`.
+- ANTIREGRESI: lebar form buku dikontrol di `Layout` (bukan `max-w` di halaman).
+
 ## 0.14.5 — Perbaikan bug mode pratinjau “Lihat tampilan siswa”
 - **Bug:** Tombol “Lihat tampilan siswa” mengarah ke halaman login siswa, bukan dashboard pratinjau. Setelah itu sulit kembali ke admin.
 - **Penyebab:** `SiswaContext` hanya membaca `sessionStorage` sekali saat mount. Menyimpan sesi pratinjau lalu `navigate('/siswa')` tidak memperbarui state context, sehingga `SiswaLayout` menganggap belum login dan mengarahkan ke `/siswa/masuk`.
