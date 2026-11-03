@@ -9,7 +9,7 @@ import { menuTerkelompok, menuUntuk } from '../lib/menu'
 const MENU_BAWAH = ['/', '/katalog', '/sirkulasi', '/kunjungan', '/pengaturan']
 
 /** Pola sama dengan Penilaian: lebar dikontrol di shell Layout, bukan max-w sempit di tiap halaman. */
-/** Halaman data/tabel/dashboard — pakai lebar penuh area kerja. */
+/** Halaman data/tabel/dashboard/form — pakai lebar penuh area kerja. */
 const HALAMAN_LEBAR = [
   '/',
   '/katalog',
@@ -28,11 +28,6 @@ const HALAMAN_LEBAR = [
   '/jurnal',
   '/pengaturan',
 ]
-
-/** Form buku (tambah/ubah) — lebar sedang. */
-function halamanFormBuku(pathname: string): boolean {
-  return pathname === '/katalog/baru' || /^\/katalog\/[^/]+\/ubah$/.test(pathname)
-}
 
 const STORAGE_KEY = 'perpus.menu.buka'
 
@@ -180,13 +175,11 @@ export default function Layout() {
       <main className="min-w-0 flex-1 p-4 pb-24 sm:p-5 lg:p-6 lg:pb-6 print:p-0">
         <div
           className={`mx-auto w-full ${
-            halamanFormBuku(lokasi.pathname)
-              ? 'max-w-4xl'
-              : HALAMAN_LEBAR.some(
-                    (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
-                  ) || lokasi.pathname === '/'
-                ? 'max-w-[1600px]'
-                : 'max-w-6xl'
+            HALAMAN_LEBAR.some(
+              (p) => lokasi.pathname === p || (p !== '/' && lokasi.pathname.startsWith(p + '/')),
+            ) || lokasi.pathname === '/'
+              ? 'max-w-[1600px]'
+              : 'max-w-6xl'
           }`}
         >
           <Outlet />

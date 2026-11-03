@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.8 — Lebar penuh untuk form buku dan Pengaturan
+- Halaman `/katalog/baru`, `/katalog/:id/ubah`, dan `/pengaturan` sekarang memakai `max-w-[1600px]` (lebar penuh area kerja), sama seperti halaman data lain.
+- Menghapus pembatasan `max-w-2xl` / `max-w-4xl` yang membuat form kecil di tengah saat zoom atau layar lebar.
+- Tidak ada lagi daftar `HALAMAN_SEMPIT`.
+- ANTIREGRESI: lebar dikontrol hanya di `Layout.tsx`.
+
 ## 0.14.7 — Lebar halaman Pengaturan + perbaikan tombol “Kembali ke Admin”
 - Halaman **Pengaturan** tidak lagi `max-w-2xl`. Sekarang mengikuti lebar penuh area kerja (`max-w-[1600px]`), sama seperti halaman data lain.
 - **Bug “Kembali ke Admin”:** setelah sesi pratinjau dihapus, layout langsung re-render dan mengarahkan ke `/siswa/masuk` sebelum navigasi ke dashboard admin selesai.
