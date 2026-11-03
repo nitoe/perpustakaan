@@ -1,6 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useSiswa } from '../../context/SiswaContext'
-import { keluarModePratinjau } from '../../lib/siswaAuth'
 
 function kelasNav({ isActive }: { isActive: boolean }) {
   return `rounded-full px-4 py-2 text-sm font-medium transition-all ${
@@ -12,15 +11,14 @@ function kelasNav({ isActive }: { isActive: boolean }) {
 
 /** Layout area siswa — ringan, hangat, dan lebih “anak”. */
 export default function SiswaLayout() {
-  const { sesi, loading, keluar } = useSiswa()
+  const { sesi, loading, keluar, keluarPratinjau } = useSiswa()
   const navigate = useNavigate()
 
   if (loading) return <div className="p-8 text-sm text-muted">Memuat…</div>
   if (!sesi) return <Navigate to="/siswa/masuk" replace />
 
   function keluarDariPratinjau() {
-    keluarModePratinjau()
-    keluar()
+    keluarPratinjau()
     navigate('/')
   }
 

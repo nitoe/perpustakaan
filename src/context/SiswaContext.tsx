@@ -3,6 +3,8 @@ import {
   bacaSesiSiswa,
   loginSiswa,
   logoutSiswa,
+  masukModePratinjau,
+  keluarModePratinjau,
   type SiswaSesi,
 } from '../lib/siswaAuth'
 import type { SiswaDasar } from '../lib/sirkulasi'
@@ -12,6 +14,10 @@ interface SiswaState {
   loading: boolean
   masuk: (siswa: SiswaDasar, sandiNisn: string) => Promise<void>
   keluar: () => void
+  /** Masuk mode pratinjau (admin/pustakawan). */
+  masukPratinjau: () => void
+  /** Keluar mode pratinjau. */
+  keluarPratinjau: () => void
 }
 
 const SiswaContext = createContext<SiswaState>({
@@ -19,6 +25,8 @@ const SiswaContext = createContext<SiswaState>({
   loading: true,
   masuk: async () => {},
   keluar: () => {},
+  masukPratinjau: () => {},
+  keluarPratinjau: () => {},
 })
 
 export function SiswaProvider({ children }: { children: ReactNode }) {
@@ -40,9 +48,19 @@ export function SiswaProvider({ children }: { children: ReactNode }) {
     setSesi(null)
   }, [])
 
+  const masukPratinjau = useCallback(() => {
+    const s = masukModePratinjau()
+    setSesi(s)
+  }, [])
+
+  const keluarPratinjau = useCallback(() => {
+    keluarModePratinjau()
+    setSesi(null)
+  }, [])
+
   const value = useMemo(
-    () => ({ sesi, loading, masuk, keluar }),
-    [sesi, loading, masuk, keluar],
+    () => ({ sesi, loading, masuk, keluar, masukPratinjau, keluarPratinjau }),
+    [sesi, loading, masuk, keluar, masukPratinjau, keluarPratinjau],
   )
 
   return <SiswaContext.Provider value={value}>{children}</SiswaContext.Provider>

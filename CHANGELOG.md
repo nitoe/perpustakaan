@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.5 — Perbaikan bug mode pratinjau “Lihat tampilan siswa”
+- **Bug:** Tombol “Lihat tampilan siswa” mengarah ke halaman login siswa, bukan dashboard pratinjau. Setelah itu sulit kembali ke admin.
+- **Penyebab:** `SiswaContext` hanya membaca `sessionStorage` sekali saat mount. Menyimpan sesi pratinjau lalu `navigate('/siswa')` tidak memperbarui state context, sehingga `SiswaLayout` menganggap belum login dan mengarahkan ke `/siswa/masuk`.
+- **Perbaikan:** Tambah `masukPratinjau()` dan `keluarPratinjau()` di `SiswaContext` yang memperbarui state sekaligus `sessionStorage`. Tombol di Beranda dan banner “Kembali ke Admin” memakai fungsi context.
+- ANTIREGRESI: mode pratinjau harus selalu lewat fungsi context agar state dan storage sinkron.
+
 ## 0.14.4 — Penyesuaian UI area siswa (lebih hangat & lega)
 - Header siswa: logo lebih besar, nav lebih nyaman, latar `#f8f7ff`.
 - Kartu aksi Beranda: hover lift halus, gradient lebih lembut, spacing lebih lega.

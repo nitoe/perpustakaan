@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { collection, getCountFromServer, getDocs, query, where, type Timestamp } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
+import { useSiswa } from '../context/SiswaContext'
 import { db } from '../lib/firebase'
 import { NAMA_PERAN, bisaKelola } from '../lib/peran'
 import { tanggalHariIni } from '../lib/kunjungan'
-import { masukModePratinjau } from '../lib/siswaAuth'
 import { Badge, Notice, PageHeader, StatStrip, btnGhost } from '../components/ui'
 
 interface Ringkasan {
@@ -18,6 +18,7 @@ interface Ringkasan {
 
 export default function Beranda() {
   const { profil, peran } = useAuth()
+  const { masukPratinjau } = useSiswa()
   const navigate = useNavigate()
   const [ringkasan, setRingkasan] = useState<Ringkasan | null>(null)
   const [galat, setGalat] = useState('')
@@ -61,7 +62,7 @@ export default function Beranda() {
   }, [peran])
 
   function bukaPratinjauSiswa() {
-    masukModePratinjau()
+    masukPratinjau()
     navigate('/siswa')
   }
 
