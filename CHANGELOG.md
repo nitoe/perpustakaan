@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.15 — Zoom pembaca benar-benar membesarkan
+- Zoom sebelumnya tidak terlihat karena gambar dibatasi `max-h-full max-w-full`.
+- Zoom sekarang memakai CSS `transform: scale()` dan mengizinkan gambar melebihi layar (bisa digeser).
+- Render halaman tetap di skala dasar; zoom instan tanpa menunggu render ulang.
+- Fullscreen dan progress tetap seperti 0.14.14.
+
 ## 0.14.14 — Zoom, layar penuh, dan perbaikan progress baca
 - **Bug progress:** saat modal dibuka, kode menyimpan halaman 1 sebelum progress tersimpan selesai dibaca, sehingga “lanjutkan” selalu kembali ke halaman awal.
 - **Perbaikan:** flag `siapSimpan` — progress baru ditulis setelah halaman awal dari server/lokal diterapkan.

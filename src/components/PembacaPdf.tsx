@@ -56,8 +56,7 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
     let batal = false
     void (async () => {
       try {
-        const skala = Math.max(0.8, Math.min(3, 1.3 * zoom))
-        const data = await renderHalamanKeDataUrl(pdf, halaman, skala)
+        const data = await renderHalamanKeDataUrl(pdf, halaman, 1.4)
         if (!batal) setGambar(data)
       } catch {
         if (!batal) setGalat('Gagal menampilkan halaman.')
@@ -66,7 +65,7 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
     return () => {
       batal = true
     }
-  }, [pdf, halaman, zoom])
+  }, [pdf, halaman])
 
   useEffect(() => {
     if (!siapSimpan || halaman < 1 || total < 1) return
@@ -120,7 +119,13 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
           <img
             src={gambar}
             alt={`Halaman ${halaman}`}
-            className="max-h-full max-w-full rounded shadow-lg"
+            className="rounded shadow-lg"
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: 'center center',
+              maxHeight: zoom <= 1 ? '100%' : 'none',
+              maxWidth: zoom <= 1 ? '100%' : 'none',
+            }}
             draggable={false}
           />
         )}
