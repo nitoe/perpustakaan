@@ -44,3 +44,5 @@ Aturan agar perbaikan tidak rusak lagi. Tambahkan di bawah; jangan menghapus ent
 39. **Generate AI buku dari judul (0.14.19).** Memakai `VITE_GEMINI_API_KEY` di frontend (bukan Cloud Function). Jangan commit key ke repo. Model boleh gagal bergiliran (`gemini-2.5-flash` → `2.0-flash` → `1.5-flash`). Jangan mengisi ISBN palsu di prompt; field kosong bila tidak yakin. Tombol hanya memanggil `generateDariJudulAi` setelah judul diisi; hasil tetap bisa diedit manual.
 
 40. **Model Gemini generate buku (0.14.20).** Hanya `gemini-3.1-flash-lite` dan `gemini-3.5-flash-lite`. Jangan mengembalikan model 1.5/2.0/2.5 yang sudah 404 di API key sekolah. Lookup ISBN wajib fallback Google Books setelah Open Library 404.
+
+41. **Generate AI buku lewat Cloud Function (0.14.21).** Jangan panggil generativelanguage.googleapis.com dari frontend; key hanya di secret `GEMINI_API_KEY`. Fungsi: `generateBukuMetaAi`, `generateBukuSampulAi` (asia-southeast2). Izin: role admin atau peranPerpus admin/pustakawan. Sampul AI harus dikecilkan (`kecilkanFoto`) sebelum `simpanFoto`. Model metadata: gemini-3.1-flash-lite / 3.5-flash-lite; sampul: gemini-3.1-flash-lite-image.

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.14.21 — Generate AI buku via Cloud Function + sampul AI
+- **Metadata buku** (Generate AI dari judul) dipanggil lewat Cloud Function `generateBukuMetaAi` (region `asia-southeast2`). API key Gemini **tidak** lagi di frontend.
+- **Sampul AI**: tombol “Generate sampul AI” memakai `generateBukuSampulAi` + model `gemini-3.1-flash-lite-image`; hasil dikecilkan lalu bisa disimpan seperti unggah manual.
+- Hanya **admin** atau **pustakawan** (atau role admin sistem) yang boleh memanggil.
+- **Deploy wajib:** fungsi baru ada di repo SDM01Penilaian (`functions/generateBukuAi.js` + export di `functions/index.js`). Jalankan `firebase deploy --only functions:generateBukuMetaAi,functions:generateBukuSampulAi` (secret `GEMINI_API_KEY` sudah dipakai fungsi AI lain).
+- Hapus `VITE_GEMINI_API_KEY` dari `.env` bila masih ada (tidak dipakai lagi).
+
 ## 0.14.20 — Perbaikan model Gemini + lookup ISBN
 - Model AI diganti ke **gemini-3.1-flash-lite** dan **gemini-3.5-flash-lite** (model murah yang tersedia di API key sekolah). Model lama (2.5/2.0/1.5) mengembalikan 404.
 - Lookup ISBN: bila Open Library 404 (umum untuk ISBN Indonesia), otomatis mencoba **Google Books**.

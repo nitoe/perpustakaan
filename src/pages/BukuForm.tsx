@@ -10,7 +10,8 @@ import {
   ubahBuku,
   type DataBuku,
 } from '../lib/katalog'
-import { cariJudul, generateDariJudulAi, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
+import { cariJudul, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
+import { generateBukuMetaAi, generateBukuSampulAi } from '../lib/generateBukuAi'
 import { KELAS_DDC, labelDdc } from '../lib/ddc'
 import { useKoleksi } from '../lib/useKoleksi'
 import type { Buku, FormatDigital, JenisKoleksi, KondisiBuku, Kategori } from '../lib/tipe'
@@ -150,7 +151,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     setCariApi(false)
   }
 
-  /** Generate identitas hanya dari judul lewat Gemini (tanpa ISBN). */
+  /** Generate identitas dari judul lewat Cloud Function (Gemini, key di server). */
   async function dariJudulAi() {
     setGalat('')
     setInfo('')
@@ -159,12 +160,36 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     if (q.length < 2) return setGalat('Isi judul (minimal 2 huruf) dulu, lalu tekan Generate AI.')
     setCariApi(true)
     try {
-      const h = await generateDariJudulAi(q)
-      terapkanLookup(h)
+      const h = await generateBukuMetaAi({ judul: q, isbn: f.isbn.trim() || undefined })
+      terapkanLookup({ ...h, sumber: 'gemini' })
     } catch (e) {
       setGalat(e instanceof Error ? e.message : 'Gagal generate dengan AI.')
     }
     setCariApi(false)
+  }
+
+  /** Generate sampul AI (gemini-3.1-flash-lite-image) bila belum ada foto. */
+  async function dariSampulAi() {
+    setGalat('')
+    setInfo('')
+    const q = f.judul.trim()
+    if (q.length < 2) return setGalat('Isi judul dulu untuk membuat sampul AI.')
+    setSampulProses(true)
+    try {
+      const dataUrl = await generateBukuSampulAi({
+        judul: q,
+        pengarang: f.pengarang.trim() || undefined,
+      })
+      // Kecilkan agar muat di perpus_foto (batas ~110k)
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const file = new File([blob], 'sampul-ai.jpg', { type: blob.type || 'image/jpeg' })
+      setFotoBaru(await kecilkanFoto(file))
+      setInfo('Sampul AI dibuat. Periksa lalu simpan buku agar tersimpan di katalog.')
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : 'Gagal membuat sampul AI.')
+    }
+    setSampulProses(false)
   }
 
   async function pilihFoto(file: File | undefined) {
@@ -304,8 +329,8 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         <div className="card-soft space-y-3 p-4">
           <div className="text-sm font-medium">Bantuan isi data</div>
           <p className="text-xs text-muted">
-            Cari ISBN memakai Open Library lalu Google Books. Cari judul memakai Open Library. Generate AI
-            memakai Gemini (gemini-3.1-flash-lite) dari judul saja — cocok untuk buku Indonesia. Hasil wajib diperiksa.
+            Cari ISBN/judul memakai katalog publik (Open Library / Google Books). Generate AI metadata &
+            sampul lewat Cloud Function (Gemini; key tidak di browser). Hanya admin/pustakawan. Hasil wajib diperiksa.
           </p>
           <div className="flex flex-wrap gap-2">
             <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariIsbn()}>
@@ -408,9 +433,19 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         </div>
 
         <div className="card-soft space-y-4 p-4">
-          <Field label="Sampul" hint="Gambar otomatis dikecilkan. Kosongkan bila tidak ada.">
+          <Field label="Sampul" hint="Unggah manual, buat dari PDF, atau Generate AI. Otomatis dikecilkan.">
             <input type="file" accept="image/*" onChange={(e) => void pilihFoto(e.target.files?.[0])} className="block w-full text-sm" />
           </Field>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={btnGhost}
+              disabled={sampulProses || cariApi || !f.judul.trim()}
+              onClick={() => void dariSampulAi()}
+            >
+              {sampulProses ? 'Membuat sampul…' : 'Generate sampul AI'}
+            </button>
+          </div>
           {fotoBaru ? (
             <img src={fotoBaru} alt="Sampul baru" className="h-40 rounded-lg border border-border object-cover" />
           ) : (
