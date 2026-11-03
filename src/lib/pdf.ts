@@ -28,7 +28,8 @@ export async function renderHalamanKeDataUrl(
   canvas.height = viewport.height
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas tidak tersedia.')
-  await page.render({ canvasContext: ctx, viewport }).promise
+  // pdfjs-dist versi terbaru mensyaratkan properti `canvas` di RenderParameters.
+  await page.render({ canvas, canvasContext: ctx, viewport }).promise
   return canvas.toDataURL('image/jpeg', 0.82)
 }
 

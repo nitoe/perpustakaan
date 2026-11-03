@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.14.10 — Perbaikan tipe RenderParameters pdf.js
+- Error `tsc` saat deploy: properti `canvas` wajib di `page.render()` pada pdfjs-dist terbaru.
+- `renderHalamanKeDataUrl` sekarang mengirim `{ canvas, canvasContext, viewport }`.
+- Tidak ada perubahan perilaku.
+
 ## 0.14.9 — Pembaca PDF modal + unggah ke Storage + progress
 - **Unggah PDF** ke Firebase Storage dari form Tambah/Ubah Buku (maks. 40 MB). Tautan otomatis terisi.
 - **Sampul otomatis** dari halaman 1 PDF (tombol “Buat sampul dari halaman 1”).
