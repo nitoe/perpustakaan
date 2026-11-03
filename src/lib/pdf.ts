@@ -15,6 +15,11 @@ export async function muatPdf(url: string): Promise<PdfDokumen> {
   return task.promise
 }
 
+export async function muatPdfDariBytes(data: ArrayBuffer): Promise<PdfDokumen> {
+  const task = pdfjs.getDocument({ data })
+  return task.promise
+}
+
 /** Render satu halaman ke data URL (untuk sampul atau tampilan). */
 export async function renderHalamanKeDataUrl(
   pdf: PdfDokumen,
@@ -33,9 +38,16 @@ export async function renderHalamanKeDataUrl(
   return canvas.toDataURL('image/jpeg', 0.82)
 }
 
-/** Buat sampul dari halaman 1 PDF. */
+/** Buat sampul dari halaman 1 PDF (dari URL — butuh CORS). */
 export async function buatSampulDariPdf(url: string): Promise<string> {
   const pdf = await muatPdf(url)
+  return renderHalamanKeDataUrl(pdf, 1, 0.8)
+}
+
+/** Buat sampul dari berkas PDF lokal (tanpa CORS). */
+export async function buatSampulDariFile(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  const pdf = await muatPdfDariBytes(buf)
   return renderHalamanKeDataUrl(pdf, 1, 0.8)
 }
 

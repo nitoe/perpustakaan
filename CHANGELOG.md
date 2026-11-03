@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.13 — Sampul dari berkas lokal + CORS Storage
+- **Sampul otomatis** sekarang dibuat dari berkas PDF yang baru dipilih (ArrayBuffer), bukan dengan mengambil ulang URL Storage. Menghindari error CORS saat membuat cover.
+- Tombol “Buat sampul dari halaman 1” aktif setelah berkas dipilih (sebelum atau sesudah unggah selesai).
+- Ditambahkan `storage-cors.json` agar pembaca modal bisa memuat PDF dari Storage.
+- ANTIREGRESI: pembaca modal tetap membutuhkan CORS di bucket Storage.
+
 ## 0.14.12 — Area unggah PDF lebih jelas
 - Kotak “Unggah PDF ke Storage” di form buku diganti dari input file bawaan menjadi area unggah yang lebih menonjol (border dashed tebal, latar lembut, label klik besar).
 - Input file disembunyikan (`sr-only`); pengguna mengklik area untuk memilih berkas.

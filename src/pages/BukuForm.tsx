@@ -17,7 +17,7 @@ import type { Buku, FormatDigital, JenisKoleksi, KondisiBuku, Kategori } from '.
 import { Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 import Sampul from '../components/Sampul'
 import { unggahPdf } from '../lib/storageDigital'
-import { buatSampulDariPdf } from '../lib/pdf'
+import { buatSampulDariFile } from '../lib/pdf'
 
 export default function BukuForm() {
   const { id } = useParams<{ id: string }>()
@@ -88,6 +88,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
   const [hasilCari, setHasilCari] = useState<HasilLookupBuku[]>([])
   const [unggahProses, setUnggahProses] = useState(false)
   const [sampulProses, setSampulProses] = useState(false)
+  const [pdfLokal, setPdfLokal] = useState<File | null>(null)
 
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }))
   const adaDigital = f.jenis !== 'cetak'
@@ -157,6 +158,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     setUnggahProses(true)
     setGalat('')
     setInfo('')
+    setPdfLokal(file)
     try {
       const url = await unggahPdf(file, profil.uid)
       set('tautanDigital', url)
@@ -169,20 +171,15 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
   }
 
   async function buatSampulOtomatis() {
-    const url = f.tautanDigital.trim()
-    if (!url) return setGalat('Unggah atau isi tautan PDF dulu.')
+    if (!pdfLokal) return setGalat('Unggah berkas PDF dulu (sampul dibuat dari berkas lokal).')
     setSampulProses(true)
     setGalat('')
     try {
-      const dataUrl = await buatSampulDariPdf(url)
+      const dataUrl = await buatSampulDariFile(pdfLokal)
       setFotoBaru(dataUrl)
       setInfo('Sampul dibuat dari halaman 1 PDF.')
     } catch (e) {
-      setGalat(
-        e instanceof Error
-          ? e.message
-          : 'Gagal membuat sampul. Pastikan PDF dapat diakses (CORS).',
-      )
+      setGalat(e instanceof Error ? e.message : 'Gagal membuat sampul dari berkas.')
     }
     setSampulProses(false)
   }
@@ -458,7 +455,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
                   <button
                     type="button"
                     className={btnGhost}
-                    disabled={sampulProses || !f.tautanDigital}
+                    disabled={sampulProses || !pdfLokal}
                     onClick={() => void buatSampulOtomatis()}
                   >
                     {sampulProses ? 'Membuat sampul…' : 'Buat sampul dari halaman 1'}
