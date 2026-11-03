@@ -7,9 +7,9 @@ import {
   tanggalHariIni,
 } from '../../lib/jurnal'
 import type { JurnalBaca } from '../../lib/tipe'
-import { Badge, Field, Notice, PageHeader, btnPrimary, inputCls } from '../../components/ui'
+import { Notice, inputCls } from '../../components/ui'
 
-/** Jurnal baca siswa: catat judul + kesan; lihat tanggapan guru. */
+/** Jurnal baca siswa — tampilan visual. */
 export default function SiswaJurnal() {
   const { sesi } = useSiswa()
   const [list, setList] = useState<JurnalBaca[]>([])
@@ -24,7 +24,10 @@ export default function SiswaJurnal() {
   const [formBuka, setFormBuka] = useState(false)
 
   const muat = useCallback(async () => {
-    if (!sesi?.nisn) return
+    if (!sesi?.nisn || sesi.preview) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setGalat('')
     try {
@@ -41,14 +44,23 @@ export default function SiswaJurnal() {
       setList([])
     }
     setLoading(false)
-  }, [sesi?.nisn])
+  }, [sesi?.nisn, sesi?.preview])
 
   useEffect(() => {
     void muat()
   }, [muat])
 
   if (!sesi) return null
-  // Salinan lokal agar TS tidak menganggap sesi bisa null di dalam async handler.
+
+  if (sesi.preview) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold text-muh-800">Jurnal Baca</h1>
+        <Notice>Mode pratinjau — form dan data jurnal tidak tersedia.</Notice>
+      </div>
+    )
+  }
+
   const siswa = sesi
 
   async function kirim(e: FormEvent) {
@@ -87,31 +99,30 @@ export default function SiswaJurnal() {
   }
 
   return (
-    <div>
-      <PageHeader
-        judul="Jurnal baca"
-        keterangan="Catat buku yang sudah dibaca dan kesan singkat. Guru dapat memberi tanggapan."
-        aksi={
-          <button type="button" className={btnPrimary} onClick={() => setFormBuka((v) => !v)}>
-            {formBuka ? 'Tutup form' : 'Tulis jurnal'}
-          </button>
-        }
-      />
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-muh-800 sm:text-3xl">Jurnal Baca</h1>
+          <p className="mt-1 text-sm text-muted">
+            Catat buku yang sudah dibaca dan kesan singkat. Guru dapat memberi tanggapan.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setFormBuka((v) => !v)}
+          className="rounded-full bg-muh-600 px-5 py-2 text-sm font-semibold text-white hover:bg-muh-700"
+        >
+          {formBuka ? 'Tutup' : 'Tulis Jurnal'}
+        </button>
+      </div>
 
-      {galat && (
-        <div className="mb-4">
-          <Notice tipe="error">{galat}</Notice>
-        </div>
-      )}
-      {ok && (
-        <div className="mb-4">
-          <Notice>{ok}</Notice>
-        </div>
-      )}
+      {galat && <Notice tipe="error">{galat}</Notice>}
+      {ok && <Notice>{ok}</Notice>}
 
       {formBuka && (
-        <form onSubmit={kirim} className="card-soft mb-4 space-y-3 p-4">
-          <Field label="Judul buku">
+        <form onSubmit={kirim} className="card-soft space-y-4 p-5">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[#2b2f4a]">Judul buku</label>
             <input
               className={inputCls}
               required
@@ -120,16 +131,20 @@ export default function SiswaJurnal() {
               onChange={(e) => setJudul(e.target.value)}
               placeholder="Judul yang dibaca"
             />
-          </Field>
-          <Field label="Pengarang" hint="Opsional">
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[#2b2f4a]">
+              Pengarang <span className="font-normal text-muted">(opsional)</span>
+            </label>
             <input
               className={inputCls}
               maxLength={120}
               value={pengarang}
               onChange={(e) => setPengarang(e.target.value)}
             />
-          </Field>
-          <Field label="Tanggal baca">
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[#2b2f4a]">Tanggal baca</label>
             <input
               className={inputCls}
               type="date"
@@ -137,50 +152,63 @@ export default function SiswaJurnal() {
               value={tanggalBaca}
               onChange={(e) => setTanggalBaca(e.target.value)}
             />
-          </Field>
-          <Field label="Kesan / ringkasan" hint="Maksimal 2000 karakter">
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[#2b2f4a]">
+              Kesan / ringkasan
+            </label>
             <textarea
-              className={`${inputCls} min-h-[100px]`}
+              className={`${inputCls} min-h-[110px]`}
               required
               maxLength={2000}
               value={catatan}
               onChange={(e) => setCatatan(e.target.value)}
               placeholder="Apa yang kamu pelajari atau sukai dari buku ini?"
             />
-          </Field>
-          <button type="submit" className={btnPrimary} disabled={proses}>
-            {proses ? 'Menyimpan…' : 'Simpan jurnal'}
+          </div>
+          <button
+            type="submit"
+            disabled={proses}
+            className="rounded-full bg-muh-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-muh-700 disabled:opacity-60"
+          >
+            {proses ? 'Menyimpan…' : 'Simpan Jurnal'}
           </button>
         </form>
       )}
 
       {loading ? (
-        <div className="text-sm text-muted">Memuat…</div>
+        <div className="text-sm text-muted">Memuat jurnal…</div>
       ) : list.length === 0 ? (
-        <Notice>Belum ada jurnal. Tekan “Tulis jurnal” setelah selesai membaca sebuah buku.</Notice>
+        <div className="card-soft p-6 text-center text-muted">
+          Belum ada jurnal. Tekan “Tulis Jurnal” setelah selesai membaca.
+        </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {list.map((j) => (
-            <li key={j.id} className="card-soft p-4">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <div className="font-medium text-[#1a1d33]">{j.judul}</div>
-                  {j.pengarang && <div className="text-sm text-muted">{j.pengarang}</div>}
+            <li key={j.id} className="card-soft overflow-hidden">
+              <div className="border-b border-border/70 bg-muh-50/30 px-4 py-3">
+                <div className="font-medium text-[#1a1d33]">{j.judul}</div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
+                  {j.pengarang && <span>{j.pengarang}</span>}
+                  <span>·</span>
+                  <span>{formatTanggalJurnal(j.tanggalBaca)}</span>
                 </div>
-                <div className="text-xs text-muted">{formatTanggalJurnal(j.tanggalBaca)}</div>
               </div>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-[#2b2f4a]">{j.catatan}</p>
-              {j.tanggapanGuru ? (
-                <div className="mt-3 rounded-lg border border-muh-100 bg-muh-50/50 px-3 py-2">
-                  <div className="mb-1 flex items-center gap-2">
-                    <Badge>Tanggapan guru</Badge>
-                    {j.guruNama && <span className="text-xs text-muted">{j.guruNama}</span>}
+              <div className="px-4 py-3">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#2b2f4a]">
+                  {j.catatan}
+                </p>
+                {j.tanggapanGuru ? (
+                  <div className="mt-4 rounded-xl border border-muh-100 bg-muh-50/60 px-3.5 py-3">
+                    <div className="mb-1 text-xs font-medium text-muh-700">
+                      Tanggapan guru{j.guruNama ? ` · ${j.guruNama}` : ''}
+                    </div>
+                    <p className="whitespace-pre-wrap text-sm text-[#2b2f4a]">{j.tanggapanGuru}</p>
                   </div>
-                  <p className="whitespace-pre-wrap text-sm text-[#2b2f4a]">{j.tanggapanGuru}</p>
-                </div>
-              ) : (
-                <div className="mt-2 text-xs text-muted">Belum ada tanggapan guru.</div>
-              )}
+                ) : (
+                  <div className="mt-3 text-xs text-muted">Belum ada tanggapan guru.</div>
+                )}
+              </div>
             </li>
           ))}
         </ul>

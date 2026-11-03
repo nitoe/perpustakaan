@@ -1,12 +1,42 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { collection, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore'
+import { db } from '../../lib/firebase'
+import { bisaDibacaPublik } from '../../lib/katalog'
+import type { Buku } from '../../lib/tipe'
 import { useSiswa } from '../../context/SiswaContext'
+import Sampul from '../../components/Sampul'
 
+/** Beranda siswa dengan kartu aksi + bagian “Baru saja”. */
 export default function SiswaBeranda() {
   const { sesi } = useSiswa()
+  const [baru, setBaru] = useState<Buku[]>([])
+  const [loadingBaru, setLoadingBaru] = useState(true)
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'perpus_buku'),
+      where('publik', '==', true),
+      orderBy('createdAt', 'desc'),
+      limit(12),
+    )
+    return onSnapshot(
+      q,
+      (snap) => {
+        const daftar = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }) as unknown as Buku)
+          .filter((b) => bisaDibacaPublik(b))
+        setBaru(daftar)
+        setLoadingBaru(false)
+      },
+      () => setLoadingBaru(false),
+    )
+  }, [])
+
   if (!sesi) return null
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-semibold text-muh-800 sm:text-3xl">
           Halo, {sesi.nama.split(' ')[0]}!
@@ -50,6 +80,43 @@ export default function SiswaBeranda() {
           </div>
         </Link>
       </div>
+
+      <section>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-lg font-semibold text-muh-800">Baru Saja</h2>
+          <Link to="/siswa/baca" className="text-sm font-medium text-muh-600 hover:underline">
+            Lihat semua
+          </Link>
+        </div>
+        {loadingBaru ? (
+          <div className="text-sm text-muted">Memuat…</div>
+        ) : baru.length === 0 ? (
+          <p className="text-sm text-muted">Belum ada bacaan digital publik.</p>
+        ) : (
+          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
+            {baru.map((b) => (
+              <Link
+                key={b.id}
+                to={`/siswa/baca/${b.id}`}
+                className="group w-32 shrink-0 sm:w-36"
+                title={b.judul}
+              >
+                <div className="aspect-[2/3] overflow-hidden rounded-xl bg-muh-50 shadow-sm transition group-hover:shadow-md">
+                  <Sampul id={b.coverId} className="h-full w-full object-cover" />
+                  {!b.coverId && (
+                    <div className="flex h-full items-center justify-center p-2 text-center text-xs font-medium text-muh-700">
+                      {b.judul}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 line-clamp-2 text-sm font-medium text-[#1a1d33] group-hover:text-muh-600">
+                  {b.judul}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="rounded-xl border border-border bg-white p-4 text-sm text-muted">
         Meminjam atau mengembalikan buku cetak dilakukan di perpustakaan sekolah.

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { useSiswa } from '../../context/SiswaContext'
 import { formatTanggal, pinjamanAktifPeminjam, terlambat } from '../../lib/sirkulasi'
 import type { Peminjaman } from '../../lib/tipe'
-import { Badge, Notice, PageHeader } from '../../components/ui'
+import { Notice } from '../../components/ui'
 
-/** Daftar pinjaman aktif siswa yang sedang login (buku cetak lewat sirkulasi). */
+/** Daftar pinjaman aktif siswa — tampilan visual. */
 export default function SiswaPinjaman() {
   const { sesi } = useSiswa()
   const [list, setList] = useState<Peminjaman[]>([])
@@ -12,7 +12,7 @@ export default function SiswaPinjaman() {
   const [galat, setGalat] = useState('')
 
   useEffect(() => {
-    if (!sesi?.nisn) {
+    if (!sesi?.nisn || sesi.preview) {
       setLoading(false)
       return
     }
@@ -39,58 +39,79 @@ export default function SiswaPinjaman() {
     return () => {
       batal = true
     }
-  }, [sesi?.nisn])
+  }, [sesi?.nisn, sesi?.preview])
 
   if (!sesi) return null
 
-  return (
-    <div>
-      <PageHeader
-        judul="Pinjaman saya"
-        keterangan="Buku cetak yang sedang Anda pinjam. Pengembalian dilakukan di perpustakaan sekolah."
-      />
+  if (sesi.preview) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold text-muh-800">Pinjaman Saya</h1>
+        <Notice>Mode pratinjau — data pinjaman tidak ditampilkan.</Notice>
+      </div>
+    )
+  }
 
-      {galat && (
-        <div className="mb-4">
-          <Notice tipe="error">{galat}</Notice>
-        </div>
-      )}
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-muh-800 sm:text-3xl">Pinjaman Saya</h1>
+        <p className="mt-1 text-sm text-muted">
+          Buku cetak yang sedang kamu pinjam. Pengembalian dilakukan di perpustakaan sekolah.
+        </p>
+      </div>
+
+      {galat && <Notice tipe="error">{galat}</Notice>}
 
       {loading ? (
-        <div className="text-sm text-muted">Memuat…</div>
+        <div className="text-sm text-muted">Memuat pinjaman…</div>
       ) : list.length === 0 && !galat ? (
-        <Notice>Tidak ada buku yang sedang dipinjam. Silakan pinjam di perpustakaan sekolah dengan kartu anggota.</Notice>
-      ) : list.length > 0 ? (
+        <div className="card-soft p-6 text-center">
+          <p className="text-muted">Tidak ada buku yang sedang dipinjam.</p>
+          <p className="mt-1 text-sm text-muted">
+            Silakan pinjam di perpustakaan sekolah dengan kartu anggota.
+          </p>
+        </div>
+      ) : (
         <ul className="space-y-3">
           {list.map((p) => {
             const telat = terlambat(p)
             return (
-              <li key={p.id} className="card-soft p-4">
-                <div className="font-medium text-[#1a1d33]">{p.judul}</div>
-                <div className="mt-1 flex flex-wrap gap-2 text-sm text-muted">
-                  <span>Kode: {p.eksemplarId}</span>
-                  <span>·</span>
-                  <span>Pinjam: {formatTanggal(p.tglPinjam)}</span>
-                  <span>·</span>
-                  <span className={telat ? 'font-medium text-red-600' : ''}>
-                    Jatuh tempo: {formatTanggal(p.jatuhTempo)}
-                  </span>
+              <li
+                key={p.id}
+                className={`card-soft overflow-hidden p-0 ${telat ? 'ring-1 ring-red-200' : ''}`}
+              >
+                <div className={`px-4 py-3 ${telat ? 'bg-red-50' : 'bg-muh-50/40'}`}>
+                  <div className="font-medium text-[#1a1d33]">{p.judul}</div>
+                  <div className="mt-1 text-xs text-muted">Kode: {p.eksemplarId}</div>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {telat ? <Badge>Terlambat</Badge> : <Badge>Dipinjam</Badge>}
-                  {p.jumlahPerpanjang > 0 && <Badge>Diperpanjang {p.jumlahPerpanjang}×</Badge>}
+                <div className="grid gap-2 px-4 py-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <div className="text-xs text-muted">Tanggal pinjam</div>
+                    <div>{formatTanggal(p.tglPinjam)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted">Jatuh tempo</div>
+                    <div className={telat ? 'font-medium text-red-600' : ''}>
+                      {formatTanggal(p.jatuhTempo)}
+                      {telat && ' (terlambat)'}
+                    </div>
+                  </div>
                 </div>
+                {p.jumlahPerpanjang > 0 && (
+                  <div className="border-t border-border px-4 py-2 text-xs text-muted">
+                    Diperpanjang {p.jumlahPerpanjang}×
+                  </div>
+                )}
               </li>
             )
           })}
         </ul>
-      ) : null}
+      )}
 
-      <div className="mt-4">
-        <Notice>
-          Perpanjang atau kembalikan buku hanya melalui pustakawan di sekolah. Halaman ini hanya menampilkan status.
-        </Notice>
-      </div>
+      <Notice>
+        Perpanjang atau kembalikan buku hanya melalui pustakawan di sekolah. Halaman ini hanya menampilkan status.
+      </Notice>
     </div>
   )
 }

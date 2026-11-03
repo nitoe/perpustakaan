@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.14.3 — Halaman Pinjaman & Jurnal lebih visual + “Baru Saja” di Beranda
+- **Pinjaman saya**: kartu visual dengan status terlambat menonjol; mode pratinjau menampilkan pesan tanpa data.
+- **Jurnal baca**: daftar entry lebih rapi, form tulis lebih nyaman, mode pratinjau tidak menampilkan form/data.
+- **Beranda siswa**: bagian “Baru Saja” (carousel sampul bacaan digital publik terbaru, maksimal 12). Mengarah ke halaman detail bacaan.
+- Kueri “Baru Saja” memakai `where('publik','==',true)` + `orderBy('createdAt','desc')` + `limit(12)` lalu disaring `bisaDibacaPublik()`.
+- ANTIREGRESI: mode pratinjau tidak boleh menulis atau menampilkan data pribadi siswa; indeks mungkin diperlukan untuk kueri beranda.
+
 ## 0.14.2 — Halaman detail bacaan siswa yang lebih indah
 - Halaman baru `/siswa/baca/:id` (`SiswaBacaDetail`): sampul besar, judul, pengarang, sinopsis, dan tombol “Baca Sekarang” yang menonjol.
 - Kartu di Rak Baca sekarang mengarah ke halaman detail (bukan langsung ke tautan luar).
