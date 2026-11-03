@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.14.11 — Sinkronisasi progress baca ke Firestore
+- Koleksi baru `perpus_progress`. ID dokumen: `{siswaId}_{bukuId}`.
+- Progress halaman terakhir dibaca dari Firestore (fallback localStorage).
+- Saat berpindah halaman, progress disimpan ke localStorage dan Firestore (`setDoc` merge).
+- Mode pratinjau (`nisn` dummy) tidak menulis ke Firestore.
+- **Rules lengkap** diperbarui di `firestore.rules.perpustakaan` (tambah match `perpus_progress`).
+- Siswa tanpa Firebase Auth tetap bisa menulis (validasi field ketat, sama pola jurnal).
+- ANTIREGRESI: jangan tulis progress saat pratinjau; rules membatasi field dan ukuran.
+
 ## 0.14.10 — Perbaikan tipe RenderParameters pdf.js
 - Error `tsc` saat deploy: properti `canvas` wajib di `page.render()` pada pdfjs-dist terbaru.
 - `renderHalamanKeDataUrl` sekarang mengirim `{ canvas, canvasContext, viewport }`.

@@ -30,8 +30,9 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
         setPdf(doc)
         const t = doc.numPages
         setTotal(t)
-        const awal = Math.min(bacaProgress(nisn, bukuId), t)
-        setHalaman(awal)
+        const awal = await bacaProgress(nisn, bukuId)
+        const aman = Math.min(Math.max(1, awal), t)
+        setHalaman(aman)
       } catch (e) {
         if (!batal) setGalat(e instanceof Error ? e.message : 'Gagal membuka PDF.')
       }
@@ -59,8 +60,10 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
   }, [pdf, halaman])
 
   useEffect(() => {
-    if (halaman >= 1) simpanProgress(nisn, bukuId, halaman)
-  }, [halaman, nisn, bukuId])
+    if (halaman >= 1 && total > 0) {
+      void simpanProgress(nisn, bukuId, halaman, total, judul)
+    }
+  }, [halaman, total, nisn, bukuId, judul])
 
   function sebelumnya() {
     setHalaman((h) => Math.max(1, h - 1))

@@ -25,6 +25,7 @@ export default function SiswaBacaDetail() {
   const [loading, setLoading] = useState(true)
   const [galat, setGalat] = useState('')
   const [bukaPembaca, setBukaPembaca] = useState(false)
+  const [progress, setProgress] = useState(1)
 
   useEffect(() => {
     if (!id) return
@@ -56,6 +57,19 @@ export default function SiswaBacaDetail() {
     }
   }, [id])
 
+  useEffect(() => {
+    if (!b || !sesi?.nisn) return
+    const adalahPdf = b.formatDigital === 'pdf' || (b.tautanDigital ?? '').toLowerCase().includes('.pdf')
+    if (!adalahPdf) return
+    let batal = false
+    void bacaProgress(sesi.nisn, b.id).then((h) => {
+      if (!batal) setProgress(h)
+    })
+    return () => {
+      batal = true
+    }
+  }, [b, sesi?.nisn])
+
   if (loading) {
     return <div className="py-16 text-center text-sm text-muted">Memuat bacaan…</div>
   }
@@ -74,7 +88,6 @@ export default function SiswaBacaDetail() {
   const url = bisaDibacaPublik(b)!
   const adalahPdf = b.formatDigital === 'pdf' || url.toLowerCase().includes('.pdf')
   const nisn = sesi?.nisn ?? 'tamu'
-  const progress = adalahPdf ? bacaProgress(nisn, b.id) : 1
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -133,7 +146,7 @@ export default function SiswaBacaDetail() {
                   {progress > 1 ? `Lanjutkan dari halaman ${progress}` : 'Baca Sekarang'}
                 </button>
                 <p className="mt-3 text-xs text-muted">
-                  Bacaan dibuka di dalam aplikasi. Progress halaman terakhir disimpan di perangkat ini.
+                  Bacaan dibuka di dalam aplikasi. Progress disimpan di perangkat dan disinkronkan ke server.
                 </p>
               </>
             ) : (
@@ -161,7 +174,10 @@ export default function SiswaBacaDetail() {
           judul={b.judul}
           nisn={nisn}
           bukuId={b.id}
-          onTutup={() => setBukaPembaca(false)}
+          onTutup={() => {
+            setBukaPembaca(false)
+            void bacaProgress(nisn, b.id).then(setProgress)
+          }}
         />
       )}
     </div>
