@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.12 — Area unggah PDF lebih jelas
+- Kotak “Unggah PDF ke Storage” di form buku diganti dari input file bawaan menjadi area unggah yang lebih menonjol (border dashed tebal, latar lembut, label klik besar).
+- Input file disembunyikan (`sr-only`); pengguna mengklik area untuk memilih berkas.
+- Status “Mengunggah…” dan indikasi tautan sudah terisi ditampilkan.
+- Tidak ada perubahan logika unggah.
+
 ## 0.14.11 — Sinkronisasi progress baca ke Firestore
 - Koleksi baru `perpus_progress`. ID dokumen: `{siswaId}_{bukuId}`.
 - Progress halaman terakhir dibaca dari Firestore (fallback localStorage).

@@ -431,19 +431,30 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
                 </Field>
               </div>
 
-              <div className="rounded-lg border border-dashed border-border p-3">
-                <div className="text-sm font-medium">Unggah PDF ke Storage</div>
+              <div className="rounded-xl border-2 border-dashed border-muh-300 bg-muh-50/60 p-5">
+                <div className="text-sm font-semibold text-muh-800">Unggah PDF ke Storage</div>
                 <p className="mt-1 text-xs text-muted">
                   Disarankan agar pembaca modal dan sampul otomatis stabil. Maks. 40 MB.
                 </p>
-                <input
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  disabled={unggahProses}
-                  onChange={(e) => void pilihPdf(e.target.files?.[0])}
-                  className="mt-2 block w-full text-sm"
-                />
-                <div className="mt-3 flex flex-wrap gap-2">
+                <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-muh-200 bg-white px-4 py-6 text-center transition hover:border-muh-400 hover:bg-muh-50">
+                  <span className="text-sm font-medium text-muh-700">
+                    {unggahProses ? 'Mengunggah…' : 'Klik untuk memilih berkas PDF'}
+                  </span>
+                  <span className="mt-1 text-xs text-muted">atau seret berkas ke area ini</span>
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    disabled={unggahProses}
+                    onChange={(e) => void pilihPdf(e.target.files?.[0])}
+                    className="sr-only"
+                  />
+                </label>
+                {f.tautanDigital && f.formatDigital === 'pdf' && (
+                  <p className="mt-3 truncate text-xs text-muh-600">
+                    Tautan terisi. Siap dibaca di modal.
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"
                     className={btnGhost}
