@@ -32,7 +32,7 @@ const NAMA_KONDISI: Record<KondisiBuku, string> = {
 
 export default function Sirkulasi() {
   const { profil } = useAuth()
-  const [mode, setMode] = useState<Mode>('pinjam')
+  const [mode, setMode] = useState<Mode>('daftar')
   const [aturan, setAturan] = useState<Aturan | null>(null)
   const [galat, setGalat] = useState('')
   const [ok, setOk] = useState('')
@@ -47,15 +47,15 @@ export default function Sirkulasi() {
     <div className="w-full">
       <PageHeader
         judul="Sirkulasi"
-        keterangan="Pinjam, kembalikan, dan perpanjang buku. Pilih siswa dari dropdown (yang sudah diaktifkan) atau pindai kode eksemplar."
+        keterangan="Semua buku yang sedang dipinjam tampil di sini. Untuk pinjam baru, pilih siswa atau anggota lalu cari eksemplar."
       />
 
       <div className="mb-4 flex gap-2">
         {(
           [
-            ['pinjam', 'Pinjam'],
-            ['kembali', 'Kembali'],
-            ['daftar', 'Daftar aktif'],
+            ['daftar', 'Semua pinjaman'],
+            ['pinjam', 'Pinjam baru'],
+            ['kembali', 'Kembalikan'],
           ] as const
         ).map(([k, label]) => (
           <button
