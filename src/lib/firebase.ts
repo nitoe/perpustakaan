@@ -17,6 +17,9 @@ const firebaseConfig = {
 const isNewApp = getApps().length === 0
 const app = isNewApp ? initializeApp(firebaseConfig) : getApps()[0]!
 
+/** Instance Firebase App — dipakai Cloud Functions (generate AI buku), Auth, Firestore, Storage. */
+export { app }
+
 export const auth = getAuth(app)
 // ignoreUndefinedProperties: field kosong tidak membuat setDoc gagal. Hanya boleh dipanggil sekali.
 // Cache lokal persisten (IndexedDB): katalog yang sudah dimuat tidak dibaca ulang penuh tiap sesi,
