@@ -40,13 +40,9 @@ Aturan agar perbaikan tidak rusak lagi. Tambahkan di bawah; jangan menghapus ent
 36. **Zoom tidak memotong (0.14.16).** Jangan memakai `transform: scale()` untuk zoom — itu memotong dan area scroll tidak ikut membesar. Atur `width` layout gambar sesuai zoom agar seluruh halaman (termasuk bagian atas) bisa digeser.
 37. **Slider zoom (0.14.17).** Zoom memakai slider 50–200% (langkah 5). 100% harus pas di layar. Jangan lompat langsung ke 125% yang sangat besar. Skala relatif terhadap ukuran pas, bukan persentase mentah yang langsung melebihi layar.
 38. **Tampil di Rak Baca (0.14.18).** Buku hanya muncul bila `publik == true`, `jenis` bukan `cetak`, dan `tautanDigital` lolos `tautanAman()`. Unggah ke Storage tidak cukup. Setelah unggah PDF, form mencentang publik otomatis — pengguna tetap bisa menghapus centang untuk berkas berhak cipta.
-
 39. **Generate AI buku dari judul (0.14.19).** Memakai `VITE_GEMINI_API_KEY` di frontend (bukan Cloud Function). Jangan commit key ke repo. Model boleh gagal bergiliran (`gemini-2.5-flash` → `2.0-flash` → `1.5-flash`). Jangan mengisi ISBN palsu di prompt; field kosong bila tidak yakin. Tombol hanya memanggil `generateDariJudulAi` setelah judul diisi; hasil tetap bisa diedit manual.
-
 40. **Model Gemini generate buku (0.14.20).** Hanya `gemini-3.1-flash-lite` dan `gemini-3.5-flash-lite`. Jangan mengembalikan model 1.5/2.0/2.5 yang sudah 404 di API key sekolah. Lookup ISBN wajib fallback Google Books setelah Open Library 404.
-
 41. **Generate AI buku lewat Cloud Function (0.14.21).** Jangan panggil generativelanguage.googleapis.com dari frontend; key hanya di secret `GEMINI_API_KEY`. Fungsi: `generateBukuMetaAi`, `generateBukuSampulAi` (asia-southeast2). Izin: role admin atau peranPerpus admin/pustakawan. Sampul AI harus dikecilkan (`kecilkanFoto`) sebelum `simpanFoto`. Model metadata: gemini-3.1-flash-lite / 3.5-flash-lite; sampul: gemini-3.1-flash-lite-image.
-
 42. **Mode tampilan katalog (0.14.22).** Mode `daftar`/`rak` disimpan di `localStorage` key `perpus_katalog_mode`. Filter `tanpaSampul` memakai field `coverId` (kosong = tanpa sampul). `Sampul` dengan `placeholder` wajib tidak memecah layout grid (isi penuh area aspect 3/4).
-
 43. **Izin login siswa (0.14.24).** Jangan memakai field `aktif` di koleksi `siswa` (milik Penilaian) sebagai izin area perpustakaan. Selalu cek `perpus_izin_siswa/{nipd}.aktif == true`. Dropdown `/siswa/masuk` dan `loginSiswa` wajib memfilter izin. Rules: `allow read: if true` pada izin (tanpa Auth); tulis hanya `perpusPustakawan()`. Jangan menulis ke koleksi `siswa` dari aplikasi perpustakaan.
+44. **Halaman login gaya portal (0.14.25).** Hero memakai gambar `public/hero-perpustakaan.png` dengan overlay gradient. Jangan menghapus overlay karena teks putih harus tetap terbaca. Tab Siswa/Staf hanya navigasi; logika login tetap terpisah di masing-masing halaman. Dropdown nama siswa tetap hanya menampilkan yang sudah diaktifkan di `perpus_izin_siswa`.

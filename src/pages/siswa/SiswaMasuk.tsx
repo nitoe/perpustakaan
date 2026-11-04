@@ -13,7 +13,7 @@ function pesanGalat(e: unknown): string {
   return e instanceof Error ? e.message : 'Gagal masuk.'
 }
 
-/** Login siswa: pilih kelas → pilih nama → NISN sebagai kata sandi. */
+/** Login siswa: pilih kelas → pilih nama → NISN sebagai kata sandi. Hanya siswa yang sudah diaktifkan pustakawan yang muncul. */
 export default function SiswaMasuk() {
   const { sesi, loading, masuk } = useSiswa()
   const [kelas, setKelas] = useState('')
@@ -23,6 +23,7 @@ export default function SiswaMasuk() {
   const [galat, setGalat] = useState('')
   const [muatDaftar, setMuatDaftar] = useState(false)
   const [proses, setProses] = useState(false)
+  const [tampilNisn, setTampilNisn] = useState(false)
 
   useEffect(() => {
     if (!kelas) {
@@ -38,7 +39,9 @@ export default function SiswaMasuk() {
       .then((list) => {
         if (!batal) {
           setDaftar(list)
-          if (list.length === 0) setGalat(`Tidak ada siswa yang diizinkan login di kelas ${kelas}. Minta pustakawan mengaktifkan di menu Izin siswa.`)
+          if (list.length === 0) {
+            setGalat(`Tidak ada siswa yang diizinkan login di kelas ${kelas}. Minta pustakawan mengaktifkan di menu Izin siswa.`)
+          }
         }
       })
       .catch((e) => {
@@ -77,87 +80,134 @@ export default function SiswaMasuk() {
 
   return (
     <div className="auth-shell">
-      <div className="auth-brand hidden flex-col justify-between p-10 text-white lg:flex">
-        <div className="flex items-center gap-3">
-          <div className="auth-logo-tile">
-            <img src="/logo-sdm.png" alt="" className="h-9 w-9 object-contain" />
+      <aside className="auth-hero">
+        <div className="auth-hero-inner">
+          <div className="auth-brand-row">
+            <div className="auth-logo-tile">
+              <img src="/logo-sdm.png" alt="" className="h-9 w-9 object-contain" />
+            </div>
+            <div>
+              <div className="auth-brand-name">Perpustakaan Digital</div>
+              <div className="auth-brand-tag">Membaca, memahami, tumbuh bersama</div>
+            </div>
           </div>
-          <span className="text-sm font-semibold">SD Muhammadiyah 01 Kukusan</span>
-        </div>
-        <div>
-          <h1 className="auth-display">Masuk Siswa</h1>
-          <p className="mt-3 max-w-sm text-sm text-muh-200">
-            Pilih kelas dan nama, lalu masukkan NISN sebagai kata sandi untuk membuka rak baca pribadi.
+
+          <p className="auth-hero-kicker">Untuk siswa · SD Muhammadiyah 01 Kukusan</p>
+          <h1 className="auth-hero-title">Setiap halaman yang dibaca adalah langkah kecil menuju ilmu yang bermanfaat.</h1>
+          <p className="auth-hero-desc">
+            Pilih kelas dan nama, masukkan NISN, lalu buka rak baca pribadi, pinjaman, dan jurnal bacaanmu.
           </p>
-        </div>
-        <div />
-      </div>
-      <div className="auth-form-panel">
-        <form onSubmit={kirim} className="auth-form-card space-y-4">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Masuk siswa</h2>
-            <p className="mt-1 text-sm text-muted">Kata sandi = NISN pada kartu anggota / rapor.</p>
+
+          <div className="auth-hero-pills">
+            <div className="auth-hero-pill">
+              <strong>Rak baca digital</strong>
+              <span>Buku yang ditandai publik</span>
+            </div>
+            <div className="auth-hero-pill">
+              <strong>Progress baca</strong>
+              <span>Lanjutkan dari halaman terakhir</span>
+            </div>
+            <div className="auth-hero-pill">
+              <strong>Tanpa akun baru</strong>
+              <span>Cukup kelas, nama, dan NISN</span>
+            </div>
           </div>
+
+          <div className="auth-hero-quote">
+            “Barangsiapa menempuh jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga.”
+            <cite>— HR. Muslim</cite>
+          </div>
+        </div>
+      </aside>
+
+      <main className="auth-panel">
+        <div className="auth-panel-card">
+          <div className="auth-mobile-brand">
+            <div className="auth-logo-tile auth-logo-tile--light">
+              <img src="/logo-sdm.png" alt="" className="h-8 w-8 object-contain" />
+            </div>
+            <div>
+              <strong>Perpustakaan Digital</strong>
+              <span>SD Muhammadiyah 01 Kukusan</span>
+            </div>
+          </div>
+
+          <div className="auth-tabs">
+            <button type="button" className="auth-tab auth-tab--active">Siswa</button>
+            <Link to="/masuk" className="auth-tab">Staf</Link>
+          </div>
+
+          <h2 className="auth-panel-title">Assalamu'alaikum wr. wb.</h2>
+          <p className="auth-panel-sub">
+            Pilih kelas dan nama, lalu masukkan NISN sebagai kata sandi. Hanya siswa yang sudah diaktifkan pustakawan yang dapat masuk.
+          </p>
+
           {galat && <div className="auth-alert auth-alert--error">{galat}</div>}
 
-          <div className="auth-field">
-            <label htmlFor="kelas">Kelas</label>
-            <select
-              id="kelas"
-              required
-              value={kelas}
-              onChange={(e) => setKelas(e.target.value)}
-              autoComplete="off"
-            >
-              <option value="">— Pilih kelas —</option>
-              {DAFTAR_KELAS.map((k) => (
-                <option key={k} value={k}>
-                  {k}
+          <form onSubmit={kirim} className="space-y-4">
+            <div className="auth-field">
+              <label htmlFor="kelas">Kelas</label>
+              <select id="kelas" required value={kelas} onChange={(e) => setKelas(e.target.value)} autoComplete="off">
+                <option value="">— Pilih kelas —</option>
+                {DAFTAR_KELAS.map((k) => (
+                  <option key={k} value={k}>
+                    {k}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="nama">Nama siswa</label>
+              <select
+                id="nama"
+                required
+                value={siswaId}
+                onChange={(e) => setSiswaId(e.target.value)}
+                disabled={!kelas || muatDaftar}
+                autoComplete="off"
+              >
+                <option value="">
+                  {muatDaftar ? 'Memuat…' : !kelas ? 'Pilih kelas dulu' : '— Pilih nama —'}
                 </option>
-              ))}
-            </select>
-          </div>
+                {daftar.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nama}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="auth-field">
-            <label htmlFor="nama">Nama siswa</label>
-            <select
-              id="nama"
-              required
-              value={siswaId}
-              onChange={(e) => setSiswaId(e.target.value)}
-              disabled={!kelas || muatDaftar}
-              autoComplete="off"
-            >
-              <option value="">
-                {muatDaftar ? 'Memuat…' : !kelas ? 'Pilih kelas dulu' : '— Pilih nama —'}
-              </option>
-              {daftar.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nama}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="auth-field">
+              <label htmlFor="nisn">NISN (kata sandi)</label>
+              <div className="auth-password-wrap">
+                <input
+                  id="nisn"
+                  type={tampilNisn ? 'text' : 'password'}
+                  inputMode="numeric"
+                  autoComplete="current-password"
+                  required
+                  value={nisn}
+                  onChange={(e) => setNisn(e.target.value)}
+                  placeholder="Masukkan NISN"
+                />
+                <button
+                  type="button"
+                  className="auth-toggle-visibility"
+                  onClick={() => setTampilNisn((v) => !v)}
+                  aria-label={tampilNisn ? 'Sembunyikan NISN' : 'Tampilkan NISN'}
+                >
+                  {tampilNisn ? 'Sembunyikan' : 'Tampilkan'}
+                </button>
+              </div>
+            </div>
 
-          <div className="auth-field">
-            <label htmlFor="nisn">NISN (kata sandi)</label>
-            <input
-              id="nisn"
-              type="password"
-              inputMode="numeric"
-              autoComplete="current-password"
-              required
-              value={nisn}
-              onChange={(e) => setNisn(e.target.value)}
-              placeholder="Masukkan NISN"
-            />
-          </div>
+            <button type="submit" className="auth-btn-primary" disabled={proses || !siswaId}>
+              {proses ? 'Memeriksa…' : 'Masuk & buka rak baca'}
+            </button>
+          </form>
 
-          <button type="submit" className="auth-btn-primary" disabled={proses || !siswaId}>
-            {proses ? 'Memeriksa…' : 'Masuk'}
-          </button>
-
-          <p className="text-center text-sm text-muted">
+          <p className="mt-5 text-center text-sm text-muted">
             Tanpa login:{' '}
             <Link to="/publik/baca" className="font-medium text-muh-600 hover:underline">
               rak baca publik
@@ -167,8 +217,8 @@ export default function SiswaMasuk() {
               masuk staf
             </Link>
           </p>
-        </form>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

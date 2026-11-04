@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.14.25 — Halaman login gaya portal-orangtua
+- Halaman masuk staf (`/masuk`) dan siswa (`/siswa/masuk`) diubah menjadi dua kolom dengan hero bergambar latar perpustakaan (ilustrasi pojok baca Islami).
+- Narasi, pills, dan kutipan disesuaikan untuk konteks perpustakaan digital sekolah.
+- Tab Siswa / Staf di kedua halaman agar mudah berpindah.
+- Login siswa tetap: pilih kelas → nama (hanya yang sudah diaktifkan pustakawan di `perpus_izin_siswa`) → NISN sebagai kata sandi.
+- Tombol tampilkan/sembunyikan kata sandi / NISN.
+- Gambar latar: `public/hero-perpustakaan.png`.
+- Tidak ada perubahan logika autentikasi atau rules.
+
 ## 0.14.24 — Izin login siswa (aktivasi oleh pustakawan)
 - Koleksi baru **`perpus_izin_siswa`** (ID = NIPD / id dokumen `siswa`). Field utama: `aktif`, nama, kelas, nisn, diaktifkanOleh.
 - Login di `/siswa/masuk` **hanya** menampilkan dan menerima siswa yang sudah diaktifkan (`aktif: true`). Nama tetap diambil otomatis dari data Penilaian.
