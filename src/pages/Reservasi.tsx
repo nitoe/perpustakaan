@@ -6,6 +6,7 @@ import { kePeminjamAnggota, kePeminjamSiswa, type SiswaDasar } from '../lib/sirk
 import { buatReservasi, daftarReservasiAktif, ubahStatusReservasi } from '../lib/reservasi'
 import type { Anggota, Buku, Reservasi as TReservasi } from '../lib/tipe'
 import PilihSiswaAktif from '../components/PilihSiswaAktif'
+import CariBuku from '../components/CariBuku'
 import { Badge, Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
 const NAMA_STATUS: Record<TReservasi['status'], string> = {
@@ -25,7 +26,6 @@ export default function Reservasi() {
   const [memuat, setMemuat] = useState(true)
 
   const [bukuId, setBukuId] = useState('')
-  const [cariBuku, setCariBuku] = useState('')
   const [tipe, setTipe] = useState<'siswa' | 'anggota'>('siswa')
   const [siswaTerpilih, setSiswaTerpilih] = useState<SiswaDasar | null>(null)
   const [anggotaId, setAnggotaId] = useState('')
@@ -46,15 +46,6 @@ export default function Reservasi() {
   useEffect(() => {
     void muat()
   }, [muat])
-
-  const opsiBuku = buku.data
-    .filter((b) => b.jenis !== 'digital')
-    .filter((b) => {
-      const q = cariBuku.trim().toLowerCase()
-      if (!q) return true
-      return b.judul.toLowerCase().includes(q) || (b.pengarang?.toLowerCase().includes(q) ?? false)
-    })
-    .slice(0, 40)
 
   const anggotaAktif = anggotaList.data
     .filter((a) => a.aktif !== false)
@@ -81,6 +72,7 @@ export default function Reservasi() {
       setOk(`Reservasi dicatat: ${b.judul} untuk ${pemesan.nama}.`)
       setSiswaTerpilih(null)
       setAnggotaId('')
+      setBukuId('')
       await muat()
     } catch (err) {
       setGalat(err instanceof Error ? err.message : 'Gagal membuat reservasi.')
@@ -115,19 +107,11 @@ export default function Reservasi() {
       )}
 
       <div className="card-soft mb-4 space-y-3 p-4">
-        <Field label="Cari buku">
-          <input className={inputCls} value={cariBuku} onChange={(e) => setCariBuku(e.target.value)} placeholder="Judul…" />
-        </Field>
-        <Field label="Buku">
-          <select className={inputCls} value={bukuId} onChange={(e) => setBukuId(e.target.value)}>
-            <option value="">— Pilih —</option>
-            {opsiBuku.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.judul} ({b.eksemplarTersedia ?? 0} tersedia)
-              </option>
-            ))}
-          </select>
-        </Field>
+        <CariBuku
+          nilaiId={bukuId}
+          onPilih={(b) => setBukuId(b?.id ?? '')}
+          disabled={proses}
+        />
         <div className="flex gap-2">
           <button
             type="button"
