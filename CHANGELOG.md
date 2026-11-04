@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.14.22 — Tampilan rak (thumbnail) di Katalog
+- Mode **Daftar** / **Rak · thumbnail** di halaman Katalog (pilihan disimpan di `localStorage`).
+- Mode rak: grid sampul 3:4, badge “Tanpa sampul”, jenis digital, stok tersedia.
+- Mode daftar juga menampilkan thumbnail kecil di kiri.
+- Filter **Tanpa sampul** (+ jumlah judul tanpa cover) untuk melengkapi koleksi sampul.
+- Komponen `Sampul` mendukung `placeholder` (inisial judul) bila belum ada cover.
+
 ## 0.14.21 — Generate AI buku via Cloud Function + sampul AI
 - **Metadata buku** (Generate AI dari judul) dipanggil lewat Cloud Function `generateBukuMetaAi` (region `asia-southeast2`). API key Gemini **tidak** lagi di frontend.
 - **Sampul AI**: tombol “Generate sampul AI” memakai `generateBukuSampulAi` + model `gemini-3.1-flash-lite-image`; hasil dikecilkan lalu bisa disimpan seperti unggah manual.

@@ -46,3 +46,5 @@ Aturan agar perbaikan tidak rusak lagi. Tambahkan di bawah; jangan menghapus ent
 40. **Model Gemini generate buku (0.14.20).** Hanya `gemini-3.1-flash-lite` dan `gemini-3.5-flash-lite`. Jangan mengembalikan model 1.5/2.0/2.5 yang sudah 404 di API key sekolah. Lookup ISBN wajib fallback Google Books setelah Open Library 404.
 
 41. **Generate AI buku lewat Cloud Function (0.14.21).** Jangan panggil generativelanguage.googleapis.com dari frontend; key hanya di secret `GEMINI_API_KEY`. Fungsi: `generateBukuMetaAi`, `generateBukuSampulAi` (asia-southeast2). Izin: role admin atau peranPerpus admin/pustakawan. Sampul AI harus dikecilkan (`kecilkanFoto`) sebelum `simpanFoto`. Model metadata: gemini-3.1-flash-lite / 3.5-flash-lite; sampul: gemini-3.1-flash-lite-image.
+
+42. **Mode tampilan katalog (0.14.22).** Mode `daftar`/`rak` disimpan di `localStorage` key `perpus_katalog_mode`. Filter `tanpaSampul` memakai field `coverId` (kosong = tanpa sampul). `Sampul` dengan `placeholder` wajib tidak memecah layout grid (isi penuh area aspect 3/4).
