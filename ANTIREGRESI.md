@@ -1,3 +1,3 @@
-# ANTIREGRESI (tambahan 0.14.28)
+# ANTIREGRESI (tambahan 0.14.30)
 
-29. **Paste sampul.** Listener `paste` global di form buku harus mengabaikan event jika target adalah `input`/`textarea`/contentEditable agar tidak menghalangi tempel teks biasa. Hanya proses item clipboard bertipe `image/*`.
+30. **Hapus buku vs eksemplar `dihapus`.** Jangan memblokir hapus katalog hanya karena masih ada dokumen eksemplar berstatus `dihapus`. Blokir hanya jika masih ada status aktif (`tersedia`/`dipinjam`/`hilang`). Saat hapus, bersihkan dokumen eksemplar `dihapus` dalam batch yang sama agar tidak menyisakan data yatim.

@@ -168,6 +168,11 @@ export default function BukuDetail() {
               <div className="font-semibold">Eksemplar</div>
               <div className="tabular text-sm text-muted">
                 {b.eksemplarTersedia ?? 0} tersedia dari {b.eksemplarTotal ?? 0}
+                {eks.filter((e) => e.status === 'dihapus').length > 0 && (
+                  <span className="ml-2 text-xs text-muted">
+                    · {eks.filter((e) => e.status === 'dihapus').length} dikeluarkan
+                  </span>
+                )}
               </div>
             </div>
             {kelola && (
@@ -187,7 +192,11 @@ export default function BukuDetail() {
             </div>
           )}
           {daftar.length === 0 ? (
-            <div className="p-4 text-sm text-muted">Belum ada eksemplar.</div>
+            <div className="p-4 text-sm text-muted">
+              {eks.some((e) => e.status === 'dihapus')
+                ? 'Tidak ada eksemplar aktif. Centang "Tampilkan eksemplar yang sudah dikeluarkan" di bawah untuk melihat yang dikeluarkan, atau hapus buku dari katalog jika judul duplikat.'
+                : 'Belum ada eksemplar.'}
+            </div>
           ) : (
             <ul className="divide-y divide-border">
               {daftar.map((e) => (

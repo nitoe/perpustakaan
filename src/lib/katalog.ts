@@ -5,7 +5,6 @@ import {
   doc,
   getDocs,
   increment,
-  limit,
   query,
   serverTimestamp,
   updateDoc,
@@ -159,9 +158,48 @@ export async function ubahStatusEksemplar(e: Eksemplar, baru: StatusEksemplar): 
   await batch.commit()
 }
 
-/** Hapus buku hanya bila tidak punya eksemplar sama sekali (admin; riwayat tidak boleh yatim). */
+/**
+ * Hapus entri katalog buku.
+ * - Diblokir jika masih ada eksemplar aktif (tersedia / dipinjam / hilang).
+ * - Eksemplar berstatus `dihapus` (sudah dikeluarkan) dibersihkan bersama buku,
+ *   agar judul duplikat dengan "0 dari 0" tetap bisa dihapus dari katalog.
+ * Riwayat peminjaman tetap aman: field judul/eksemplarId tersimpan di `perpus_peminjaman`.
+ */
 export async function hapusBuku(id: string): Promise<void> {
-  const ada = await getDocs(query(collection(db, 'perpus_eksemplar'), where('bukuId', '==', id), limit(1)))
-  if (!ada.empty) throw new Error('Buku ini masih punya catatan eksemplar sehingga tidak bisa dihapus (riwayatnya tetap tersimpan).')
-  await deleteDoc(doc(db, 'perpus_buku', id))
+  const snap = await getDocs(query(collection(db, 'perpus_eksemplar'), where('bukuId', '==', id)))
+  const aktif = snap.docs.filter((d) => {
+    const st = (d.data() as { status?: string }).status
+    return st !== 'dihapus'
+  })
+  if (aktif.length > 0) {
+    const dipinjam = aktif.filter((d) => (d.data() as { status?: string }).status === 'dipinjam').length
+    if (dipinjam > 0) {
+      throw new Error(
+        `Masih ada ${dipinjam} eksemplar yang sedang dipinjam. Selesaikan pengembalian di Sirkulasi dulu.`,
+      )
+    }
+    const n = aktif.length
+    throw new Error(
+      `Masih ada ${n} eksemplar aktif (tersedia/hilang). Keluarkan dari koleksi lewat detail buku dulu` +
+        (snap.docs.length > n
+          ? ', atau centang "Tampilkan eksemplar yang sudah dikeluarkan" untuk memeriksa.'
+          : '.'),
+    )
+  }
+
+  // Hanya sisa status dihapus (atau tidak ada eksemplar): hapus dokumen eksemplar + buku.
+  const refs = snap.docs.map((d) => d.ref)
+  const MAKS_BATCH = 400
+  if (refs.length === 0) {
+    await deleteDoc(doc(db, 'perpus_buku', id))
+    return
+  }
+  for (let i = 0; i < refs.length; i += MAKS_BATCH) {
+    const slice = refs.slice(i, i + MAKS_BATCH)
+    const batch = writeBatch(db)
+    for (const ref of slice) batch.delete(ref)
+    const last = i + MAKS_BATCH >= refs.length
+    if (last) batch.delete(doc(db, 'perpus_buku', id))
+    await batch.commit()
+  }
 }
