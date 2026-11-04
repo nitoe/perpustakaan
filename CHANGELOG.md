@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.14.36 — Ilustrasi kartu beranda siswa
+- Kartu Rak Baca, Katalog Pinjam, Pinjaman Saya, dan Jurnal Baca memakai ilustrasi (bukan gradien polos).
+- Aset di `public/siswa/*.png`.
+
 ## 0.14.35 — Swipe halaman di smartphone
 - Geser kiri/kanan di area bacaan PDF untuk pindah halaman (HP/tablet).
 - Ambang 56px horizontal dan lebih dominan dari vertikal agar tidak bentrok dengan scroll zoom.

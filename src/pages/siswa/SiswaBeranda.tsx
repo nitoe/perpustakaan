@@ -116,7 +116,14 @@ export default function SiswaBeranda() {
           to="/siswa/baca"
           className="group card-soft flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
         >
-          <div className="h-32 bg-gradient-to-br from-muh-100 via-muh-50 to-white" />
+          <div className="aspect-[2.4/1] overflow-hidden bg-muh-50">
+            <img
+              src="/siswa/rak-baca.png"
+              alt=""
+              className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.03]"
+              draggable={false}
+            />
+          </div>
           <div className="p-5">
             <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Rak Baca</div>
             <p className="mt-1 text-sm leading-relaxed text-muted">Semua bacaan digital sekolah.</p>
@@ -127,7 +134,14 @@ export default function SiswaBeranda() {
           to="/siswa/katalog"
           className="group card-soft flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
         >
-          <div className="h-32 bg-gradient-to-br from-sky-100 via-sky-50 to-white" />
+          <div className="aspect-[2.4/1] overflow-hidden bg-sky-50">
+            <img
+              src="/siswa/katalog-pinjam.png"
+              alt=""
+              className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.03]"
+              draggable={false}
+            />
+          </div>
           <div className="p-5">
             <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Katalog Pinjam</div>
             <p className="mt-1 text-sm leading-relaxed text-muted">Lihat buku cetak di perpustakaan sebelum meminjam.</p>
@@ -138,7 +152,14 @@ export default function SiswaBeranda() {
           to="/siswa/pinjaman"
           className="group card-soft flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
         >
-          <div className="h-32 bg-gradient-to-br from-amber-100 via-amber-50 to-white" />
+          <div className="aspect-[2.4/1] overflow-hidden bg-amber-50">
+            <img
+              src="/siswa/pinjaman-saya.png"
+              alt=""
+              className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.03]"
+              draggable={false}
+            />
+          </div>
           <div className="p-5">
             <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Pinjaman Saya</div>
             <p className="mt-1 text-sm leading-relaxed text-muted">Lihat buku cetak yang sedang kamu pinjam.</p>
@@ -149,7 +170,14 @@ export default function SiswaBeranda() {
           to="/siswa/jurnal"
           className="group card-soft flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
         >
-          <div className="h-32 bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
+          <div className="aspect-[2.4/1] overflow-hidden bg-emerald-50">
+            <img
+              src="/siswa/jurnal-baca.png"
+              alt=""
+              className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.03]"
+              draggable={false}
+            />
+          </div>
           <div className="p-5">
             <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Jurnal Baca</div>
             <p className="mt-1 text-sm leading-relaxed text-muted">Catat kesan dan bacaanmu.</p>
