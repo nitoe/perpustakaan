@@ -1,11 +1,10 @@
 # CHANGELOG
 
-## 0.14.27 — Cari sampul katalog publik sebelum Generate AI
-- Tombol sampul di form buku: **cari cover di Open Library / Google Books dulu**, baru **Generate AI** jika tidak ketemu.
-- Label tombol: **Cari sampul / Generate AI**.
-- `src/lib/bukuApi.ts`: fungsi `cariSampulBuku` (ISBN → OL covers → Google Books → cari judul).
-- `firebase.json`: CSP report-only `connect-src` / `img-src` dilengkapi untuk covers Open Library, Cloud Functions, dan gambar Google.
-- Tidak mengubah Cloud Function; kompresi tetap lewat `kecilkanFoto` di browser.
+## 0.14.28 — Area unggah sampul jelas + tempel gambar (Ctrl+V)
+- Area sampul diganti kotak dashed menonjol (seperti unggah PDF): **Klik untuk memilih gambar**, seret-lepas, dan tombol **Pilih file gambar**.
+- **Tempel gambar** dari clipboard: `Ctrl+V` / `Cmd+V` di halaman form buku (saat fokus bukan di input teks) atau di area sampul.
+- Pratinjau sampul lebih besar; tombol hapus sampul baru.
+- Tetap mendukung Cari sampul / Generate AI dari 0.14.27.
 
-## 0.14.26 — Tab Kembalikan dilengkapi daftar pinjaman aktif
-- Tab **Kembalikan** di Sirkulasi menampilkan daftar pinjaman aktif + pilih baris untuk pengembalian dengan kondisi.
+## 0.14.27 — Cari sampul katalog publik sebelum Generate AI
+- Tombol sampul mencari cover di Open Library / Google Books dulu, baru AI bila tidak ketemu.

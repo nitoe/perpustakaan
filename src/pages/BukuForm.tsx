@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { catat, simpanFoto } from '../lib/data'
@@ -216,15 +216,60 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     }
   }
 
+  const inputSampulRef = useRef<HTMLInputElement>(null)
+  const [sampulDrag, setSampulDrag] = useState(false)
+
   async function pilihFoto(file: File | undefined) {
     if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setGalat('Berkas harus berupa gambar (JPG, PNG, WebP, dll.).')
+      return
+    }
     try {
       setFotoBaru(await kecilkanFoto(file))
       setGalat('')
+      setInfo('Sampul siap. Periksa pratinjau lalu simpan buku.')
     } catch (e) {
       setGalat(e instanceof Error ? e.message : 'Gagal memproses gambar.')
     }
   }
+
+  /** Tempel gambar dari clipboard (Ctrl+V / Cmd+V). */
+  const tempelSampulDariClipboard = useCallback(async (e: { clipboardData: DataTransfer | null; preventDefault: () => void }) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault()
+        const file = item.getAsFile()
+        if (file) await pilihFoto(file)
+        return
+      }
+    }
+  }, [])
+
+  // Dengarkan paste global saat form buku terbuka (mempercepat isi cover massal)
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items
+      if (!items) return
+      let adaGambar = false
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          adaGambar = true
+          break
+        }
+      }
+      if (!adaGambar) return
+      // Jangan ganggu paste teks di input/textarea
+      const el = e.target as HTMLElement | null
+      const tag = el?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || el?.isContentEditable) return
+      void tempelSampulDariClipboard(e)
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [tempelSampulDariClipboard])
 
   async function pilihPdf(file: File | undefined) {
     if (!file || !profil?.uid) return
@@ -458,24 +503,115 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         </div>
 
         <div className="card-soft space-y-4 p-4">
-          <Field label="Sampul" hint="Unggah manual, dari PDF, atau cari di katalog publik (lalu AI bila perlu). Otomatis dikecilkan.">
-            <input type="file" accept="image/*" onChange={(e) => void pilihFoto(e.target.files?.[0])} className="block w-full text-sm" />
+          <Field
+            label="Sampul"
+            hint="Unggah, tempel (Ctrl+V), seret gambar, cari katalog publik, atau AI. Otomatis dikecilkan."
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div className="shrink-0">
+                {fotoBaru ? (
+                  <img
+                    src={fotoBaru}
+                    alt="Sampul baru"
+                    className="h-44 w-32 rounded-lg border border-border object-cover shadow-sm"
+                  />
+                ) : (
+                  <Sampul id={awal?.coverId} className="h-44 w-32" />
+                )}
+                {fotoBaru && (
+                  <button
+                    type="button"
+                    className="mt-2 text-xs font-medium text-red-600 hover:underline"
+                    onClick={() => {
+                      setFotoBaru(null)
+                      if (inputSampulRef.current) inputSampulRef.current.value = ''
+                    }}
+                  >
+                    Hapus sampul baru
+                  </button>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1 space-y-3">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      inputSampulRef.current?.click()
+                    }
+                  }}
+                  onClick={() => inputSampulRef.current?.click()}
+                  onDragEnter={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSampulDrag(true)
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSampulDrag(true)
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSampulDrag(false)
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSampulDrag(false)
+                    const file = e.dataTransfer.files?.[0]
+                    void pilihFoto(file)
+                  }}
+                  onPaste={(e) => void tempelSampulDariClipboard(e)}
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-6 text-center transition ${
+                    sampulDrag
+                      ? 'border-muh-500 bg-muh-100'
+                      : 'border-muh-300 bg-muh-50/60 hover:border-muh-400 hover:bg-muh-50'
+                  }`}
+                >
+                  <span className="text-sm font-semibold text-muh-800">
+                    {sampulDrag ? 'Lepaskan gambar di sini' : 'Klik untuk memilih gambar sampul'}
+                  </span>
+                  <span className="mt-1 text-xs text-muted">
+                    atau seret file ke sini · tempel dengan <kbd className="rounded border border-border bg-white px-1">Ctrl</kbd>+
+                    <kbd className="rounded border border-border bg-white px-1">V</kbd>
+                  </span>
+                  <span className="mt-2 text-xs font-medium text-muh-600">JPG, PNG, WebP · otomatis dikecilkan</span>
+                  <input
+                    ref={inputSampulRef}
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => {
+                      void pilihFoto(e.target.files?.[0])
+                      e.target.value = ''
+                    }}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={btnPrimary}
+                    onClick={() => inputSampulRef.current?.click()}
+                  >
+                    Pilih file gambar
+                  </button>
+                  <button
+                    type="button"
+                    className={btnGhost}
+                    disabled={sampulProses || cariApi || (!f.judul.trim() && !f.isbn.trim())}
+                    onClick={() => void dariSampulAi()}
+                  >
+                    {sampulProses ? 'Mencari / membuat sampul…' : 'Cari sampul / Generate AI'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </Field>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className={btnGhost}
-              disabled={sampulProses || cariApi || !f.judul.trim()}
-              onClick={() => void dariSampulAi()}
-            >
-              {sampulProses ? 'Mencari / membuat sampul…' : 'Cari sampul / Generate AI'}
-            </button>
-          </div>
-          {fotoBaru ? (
-            <img src={fotoBaru} alt="Sampul baru" className="h-40 rounded-lg border border-border object-cover" />
-          ) : (
-            <Sampul id={awal?.coverId} className="h-40" />
-          )}
         </div>
 
         <div className="card-soft space-y-4 p-4">
