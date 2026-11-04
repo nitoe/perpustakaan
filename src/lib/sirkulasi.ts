@@ -67,11 +67,16 @@ export async function ambilEksemplar(kode: string): Promise<Eksemplar | null> {
   return { id: snap.id, ...(snap.data() as Omit<Eksemplar, 'id'>) }
 }
 
-/** Peminjaman aktif satu peminjam (peminjam.id = NISN untuk siswa, atau ID anggota). */
+/**
+ * Peminjaman aktif satu peminjam siswa.
+ * Wajib filter peminjam.tipe == 'siswa' agar rules tanpa Auth mengizinkan kueri
+ * (Firestore menolak kueri yang tidak bisa dibuktikan aman oleh rules).
+ */
 export async function pinjamanAktifPeminjam(peminjamId: string): Promise<Peminjaman[]> {
   const snap = await getDocs(
     query(
       collection(db, 'perpus_peminjaman'),
+      where('peminjam.tipe', '==', 'siswa'),
       where('peminjam.id', '==', peminjamId),
       where('status', '==', 'dipinjam'),
     ),
