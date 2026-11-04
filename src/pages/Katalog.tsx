@@ -7,7 +7,7 @@ import type { Buku, Kategori } from '../lib/tipe'
 import { Badge, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 import Sampul from '../components/Sampul'
 
-const HALAMAN = 30
+const HALAMAN = 50
 const KEY_MODE = 'perpus_katalog_mode'
 
 type ModeTampil = 'daftar' | 'rak'
@@ -41,7 +41,7 @@ export default function Katalog() {
     tersedia: false,
     tanpaSampul: false,
   })
-  const [tampil, setTampil] = useState(HALAMAN)
+  const [halaman, setHalaman] = useState(1)
   const [mode, setMode] = useState<ModeTampil>(bacaMode)
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Katalog() {
 
   const ubah = (p: Partial<Filter>) => {
     setF((s) => ({ ...s, ...p }))
-    setTampil(HALAMAN)
+    setHalaman(1)
   }
 
   const namaKat = useMemo(() => new Map(kategori.data.map((k) => [k.id, k.nama])), [kategori.data])
@@ -75,8 +75,32 @@ export default function Katalog() {
       .sort((a, b) => a.judul.localeCompare(b.judul, 'id'))
   }, [buku.data, f])
 
-  const potongan = hasil.slice(0, tampil)
+  const totalHalaman = Math.max(1, Math.ceil(hasil.length / HALAMAN))
+  const halamanAman = Math.min(halaman, totalHalaman)
+  const potongan = useMemo(() => {
+    const mulai = (halamanAman - 1) * HALAMAN
+    return hasil.slice(mulai, mulai + HALAMAN)
+  }, [hasil, halamanAman])
   const tanpaCover = useMemo(() => buku.data.filter((b) => !b.coverId).length, [buku.data])
+
+  /** Nomor halaman di sekitar halaman aktif (maks ~7 slot). */
+  const nomorHalaman = useMemo(() => {
+    const total = totalHalaman
+    const aktif = halamanAman
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+    const set = new Set<number>([1, total, aktif, aktif - 1, aktif + 1, aktif - 2, aktif + 2])
+    const list = [...set].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b)
+    const out: (number | '…')[] = []
+    for (let i = 0; i < list.length; i++) {
+      if (i > 0 && list[i]! - list[i - 1]! > 1) out.push('…')
+      out.push(list[i]!)
+    }
+    return out
+  }, [totalHalaman, halamanAman])
+
+  useEffect(() => {
+    if (halaman !== halamanAman) setHalaman(halamanAman)
+  }, [halaman, halamanAman])
 
   return (
     <div className="w-full">
@@ -195,6 +219,14 @@ export default function Katalog() {
           <div className="mb-2 text-xs text-muted">
             {hasil.length} dari {buku.data.length} judul
             {mode === 'rak' ? ' · tampilan rak' : ' · tampilan daftar'}
+            {hasil.length > 0 && (
+              <>
+                {' '}
+                · halaman {halamanAman} dari {totalHalaman}
+                {' '}
+                ({(halamanAman - 1) * HALAMAN + 1}–{Math.min(halamanAman * HALAMAN, hasil.length)})
+              </>
+            )}
           </div>
 
           {mode === 'daftar' ? (
@@ -301,12 +333,49 @@ export default function Katalog() {
             </ul>
           )}
 
-          {hasil.length > tampil && (
-            <div className="mt-4 text-center">
-              <button className={btnGhost} onClick={() => setTampil((n) => n + HALAMAN)}>
-                Tampilkan lebih banyak
+          {hasil.length > 0 && totalHalaman > 1 && (
+            <nav
+              className="mt-4 flex flex-wrap items-center justify-center gap-1.5"
+              aria-label="Navigasi halaman katalog"
+            >
+              <button
+                type="button"
+                className={btnGhost}
+                disabled={halamanAman <= 1}
+                onClick={() => setHalaman((h) => Math.max(1, Math.min(h, totalHalaman) - 1))}
+              >
+                Sebelumnya
               </button>
-            </div>
+              {nomorHalaman.map((n, i) =>
+                n === '…' ? (
+                  <span key={`e${i}`} className="px-1 text-sm text-muted">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={n}
+                    type="button"
+                    className={
+                      n === halamanAman
+                        ? btnPrimary
+                        : `${btnGhost} min-w-9 tabular`
+                    }
+                    aria-current={n === halamanAman ? 'page' : undefined}
+                    onClick={() => setHalaman(n)}
+                  >
+                    {n}
+                  </button>
+                ),
+              )}
+              <button
+                type="button"
+                className={btnGhost}
+                disabled={halamanAman >= totalHalaman}
+                onClick={() => setHalaman((h) => Math.min(totalHalaman, Math.min(h, totalHalaman) + 1))}
+              >
+                Berikutnya
+              </button>
+            </nav>
           )}
         </>
       )}
