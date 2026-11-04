@@ -10,7 +10,12 @@ interface Props {
   onTutup: () => void
 }
 
-/** Pembaca PDF modal. Tanpa tombol unduh/cetak. */
+/** Ambang geser horizontal (px) agar dianggap pindah halaman, bukan scroll. */
+const SWIPE_MIN_PX = 56
+/** Geser horizontal harus lebih dominan daripada vertikal. */
+const SWIPE_RATIO = 1.4
+
+/** Pembaca PDF modal. Tanpa tombol unduh/cetak. Swipe kiri/kanan di HP untuk pindah halaman. */
 export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props) {
   const [pdf, setPdf] = useState<PdfDokumen | null>(null)
   const [halaman, setHalaman] = useState(1)
@@ -21,6 +26,8 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
   const [zoom, setZoom] = useState(1)
   const [siapSimpan, setSiapSimpan] = useState(false)
   const wadah = useRef<HTMLDivElement>(null)
+  const areaBaca = useRef<HTMLDivElement>(null)
+  const sentuhAwal = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     let batal = false
@@ -79,6 +86,35 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
     setHalaman((h) => Math.min(total, h + 1))
   }
 
+  function onTouchStart(e: React.TouchEvent) {
+    if (e.touches.length !== 1) {
+      sentuhAwal.current = null
+      return
+    }
+    const t = e.touches[0]
+    sentuhAwal.current = { x: t.clientX, y: t.clientY }
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    const awal = sentuhAwal.current
+    sentuhAwal.current = null
+    if (!awal || e.changedTouches.length !== 1 || loading || !pdf || total < 1) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - awal.x
+    const dy = t.clientY - awal.y
+    const absX = Math.abs(dx)
+    const absY = Math.abs(dy)
+    // Hanya geser horizontal yang cukup jauh dan lebih dominan dari vertikal.
+    if (absX < SWIPE_MIN_PX || absX < absY * SWIPE_RATIO) return
+    // Geser ke kiri (jari ke kiri) → halaman berikutnya; ke kanan → sebelumnya.
+    if (dx < 0) berikutnya()
+    else sebelumnya()
+  }
+
+  function onTouchCancel() {
+    sentuhAwal.current = null
+  }
+
   async function layarPenuh() {
     const el = wadah.current
     if (!el) return
@@ -106,7 +142,13 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
         </div>
       </header>
 
-      <div className="relative flex-1 overflow-auto p-4">
+      <div
+        ref={areaBaca}
+        className="relative flex-1 overflow-auto p-4 touch-pan-y"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchCancel}
+      >
         <div className="flex min-h-full min-w-full items-start justify-center">
           {loading && <div className="text-sm text-white/80">Memuat bacaan…</div>}
           {galat && <div className="text-sm text-red-300">{galat}</div>}
@@ -114,7 +156,7 @@ export default function PembacaPdf({ url, judul, nisn, bukuId, onTutup }: Props)
             <img
               src={gambar}
               alt={`Halaman ${halaman}`}
-              className="rounded shadow-lg"
+              className="rounded shadow-lg select-none"
               style={{
                 // 100% = pas di layar (maks 42rem). Slider 50–200 mengubah lebar relatif itu.
                 width: `min(${Math.round(zoom * 100)}%, ${Math.round(zoom * 42)}rem)`,
