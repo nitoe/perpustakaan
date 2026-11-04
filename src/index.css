@@ -93,7 +93,7 @@ td, th, input[type='number'], .tabular { font-variant-numeric: tabular-nums; }
 .auth-hero-inner {
   position: relative;
   z-index: 1;
-  max-width: 26.25rem;
+  max-width: clamp(26rem, 80%, 42rem);
   margin: 0 auto;
   width: 100%;
   display: flex;
@@ -203,17 +203,17 @@ td, th, input[type='number'], .tabular { font-variant-numeric: tabular-nums; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1.5rem;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2.5rem);
   background: #fff;
 }
 
 .auth-panel-card {
   width: 100%;
-  max-width: 25rem;
+  max-width: clamp(25rem, 85%, 42rem);
   background: #fff;
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  padding: 1.75rem 1.5rem 1.5rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1.25rem, 2.5vw, 2rem);
   box-shadow: 0 1px 2px rgba(23, 23, 57, 0.04);
 }
 
@@ -367,6 +367,16 @@ td, th, input[type='number'], .tabular { font-variant-numeric: tabular-nums; }
   .auth-hero { display: none; }
   .auth-panel { padding: 1.5rem 1rem 2.5rem; }
   .auth-mobile-brand { display: flex; }
+  .auth-panel-card { max-width: 100%; }
+}
+
+@media (min-width: 1400px) {
+  .auth-panel-card {
+    max-width: clamp(32rem, 70%, 48rem);
+  }
+  .auth-hero-inner {
+    max-width: clamp(32rem, 75%, 48rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
