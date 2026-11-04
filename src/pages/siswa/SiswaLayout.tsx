@@ -68,6 +68,9 @@ export default function SiswaLayout() {
             <NavLink to="/siswa/baca" className={kelasNav}>
               Rak Baca
             </NavLink>
+            <NavLink to="/siswa/katalog" className={kelasNav}>
+              Katalog Pinjam
+            </NavLink>
             <NavLink to="/siswa/pinjaman" className={kelasNav}>
               Pinjaman
             </NavLink>

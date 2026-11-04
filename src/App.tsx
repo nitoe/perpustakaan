@@ -34,6 +34,8 @@ import SiswaRakBaca from './pages/siswa/SiswaRakBaca'
 import SiswaBacaDetail from './pages/siswa/SiswaBacaDetail'
 import SiswaPinjaman from './pages/siswa/SiswaPinjaman'
 import SiswaJurnal from './pages/siswa/SiswaJurnal'
+import SiswaKatalogCetak from './pages/siswa/SiswaKatalogCetak'
+import SiswaKatalogCetakDetail from './pages/siswa/SiswaKatalogCetakDetail'
 
 function Wajib({ children }: { children: ReactNode }) {
   const { user, profil, loading } = useAuth()
@@ -65,6 +67,8 @@ export default function App() {
         <Route index element={<SiswaBeranda />} />
         <Route path="baca" element={<SiswaRakBaca />} />
         <Route path="baca/:id" element={<SiswaBacaDetail />} />
+        <Route path="katalog" element={<SiswaKatalogCetak />} />
+        <Route path="katalog/:id" element={<SiswaKatalogCetakDetail />} />
         <Route path="pinjaman" element={<SiswaPinjaman />} />
         <Route path="jurnal" element={<SiswaJurnal />} />
       </Route>

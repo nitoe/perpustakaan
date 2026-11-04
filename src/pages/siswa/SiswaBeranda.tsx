@@ -46,7 +46,7 @@ export default function SiswaBeranda() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           to="/siswa/baca"
           className="group card-soft flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
@@ -55,6 +55,18 @@ export default function SiswaBeranda() {
           <div className="p-5">
             <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Rak Baca</div>
             <p className="mt-1 text-sm leading-relaxed text-muted">Baca cerita dan buku digital sekolah.</p>
+          </div>
+        </Link>
+
+
+        <Link
+          to="/siswa/katalog"
+          className="group card-soft flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <div className="h-32 bg-gradient-to-br from-sky-100 via-sky-50 to-white" />
+          <div className="p-5">
+            <div className="text-lg font-semibold text-muh-800 group-hover:text-muh-600">Katalog Pinjam</div>
+            <p className="mt-1 text-sm leading-relaxed text-muted">Lihat buku cetak di perpustakaan sebelum meminjam.</p>
           </div>
         </Link>
 
