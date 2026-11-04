@@ -352,6 +352,33 @@ function ModeKembali({
   const [eks, setEks] = useState<Eksemplar | null>(null)
   const [kondisi, setKondisi] = useState<KondisiBuku>('baik')
   const [proses, setProses] = useState(false)
+  const [data, setData] = useState<Peminjaman[]>([])
+  const [memuat, setMemuat] = useState(true)
+  const [hanyaTerlambat, setHanyaTerlambat] = useState(false)
+
+  const muatDaftar = useCallback(async () => {
+    setMemuat(true)
+    try {
+      setData(await daftarPinjamanAktif())
+    } catch (e) {
+      const kodeErr = (e as { code?: string })?.code
+      onGalat(kodeErr === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal memuat daftar pinjaman.')
+    }
+    setMemuat(false)
+  }, [onGalat])
+
+  useEffect(() => {
+    void muatDaftar()
+  }, [muatDaftar])
+
+  function pilihDariDaftar(p: Peminjaman) {
+    onGalat('')
+    onOk('')
+    setKetemu(p)
+    setEks(null)
+    setKode(p.eksemplarId)
+    setKondisi('baik')
+  }
 
   async function cari() {
     onGalat('')
@@ -399,83 +426,169 @@ function ModeKembali({
       setKetemu(null)
       setEks(null)
       setKode('')
+      await muatDaftar()
     } catch (err) {
       onGalat(err instanceof Error ? err.message : 'Gagal mengembalikan.')
     }
     setProses(false)
   }
 
-  return (
-    <div className="card-soft space-y-4 p-4">
-      <CariEksemplar
-        nilai={kode}
-        onPilih={setKode}
-        status="dipinjam"
-        placeholder="PRP-… atau judul yang dipinjam"
-      />
-      <button type="button" className={btnGhost} onClick={() => void cari()} disabled={!kode.trim()}>
-        Cari
-      </button>
+  const tampil = hanyaTerlambat ? data.filter((p) => terlambat(p)) : data
 
-      {ketemu && (
-        <div className="space-y-3 rounded-lg border border-border bg-surface-2 p-3 text-sm">
-          <div className="font-semibold">{ketemu.judul}</div>
-          <div className="text-muted">
-            {ketemu.eksemplarId} · {ketemu.peminjam.nama}
-            {ketemu.peminjam.kelas ? ` (${ketemu.peminjam.kelas})` : ''} · jatuh tempo{' '}
-            {formatTanggal(ketemu.jatuhTempo)}
-            {terlambat(ketemu) && (
-              <>
-                {' '}
-                <Badge>Terlambat</Badge>
-              </>
-            )}
-          </div>
-          <Field label="Kondisi saat kembali">
-            <select className={inputCls} value={kondisi} onChange={(e) => setKondisi(e.target.value as KondisiBuku)}>
-              {Object.entries(NAMA_KONDISI).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className={btnPrimary} disabled={proses} onClick={() => void lakukanKembali(false)}>
-              {proses ? 'Memproses…' : 'Kembalikan'}
-            </button>
-            <button
-              type="button"
-              className={btnGhost}
-              disabled={proses}
-              onClick={() => {
-                if (window.confirm(`Tandai ${ketemu.eksemplarId} hilang (tidak dikembalikan)?`)) void lakukanKembali(true)
-              }}
-            >
-              Tandai hilang
-            </button>
-            {aturan && ketemu.jumlahPerpanjang < aturan.maksPerpanjang && (
+  return (
+    <div className="space-y-4">
+      <div className="card-soft space-y-4 p-4">
+        <div className="text-sm text-muted">
+          Scan/cari kode eksemplar, atau pilih dari daftar pinjaman di bawah. Setelah dipilih, atur kondisi lalu kembalikan.
+        </div>
+        <CariEksemplar
+          nilai={kode}
+          onPilih={setKode}
+          status="dipinjam"
+          placeholder="PRP-… atau judul yang dipinjam"
+        />
+        <button type="button" className={btnGhost} onClick={() => void cari()} disabled={!kode.trim()}>
+          Cari
+        </button>
+
+        {ketemu && (
+          <div className="space-y-3 rounded-lg border border-border bg-surface-2 p-3 text-sm">
+            <div className="font-semibold">{ketemu.judul}</div>
+            <div className="text-muted">
+              {ketemu.eksemplarId} · {ketemu.peminjam.nama}
+              {ketemu.peminjam.kelas ? ` (${ketemu.peminjam.kelas})` : ''} · jatuh tempo{' '}
+              {formatTanggal(ketemu.jatuhTempo)}
+              {terlambat(ketemu) && (
+                <>
+                  {' '}
+                  <Badge>Terlambat</Badge>
+                </>
+              )}
+            </div>
+            <Field label="Kondisi saat kembali">
+              <select className={inputCls} value={kondisi} onChange={(e) => setKondisi(e.target.value as KondisiBuku)}>
+                {Object.entries(NAMA_KONDISI).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={btnPrimary} disabled={proses} onClick={() => void lakukanKembali(false)}>
+                {proses ? 'Memproses…' : 'Kembalikan'}
+              </button>
               <button
                 type="button"
                 className={btnGhost}
                 disabled={proses}
-                onClick={async () => {
-                  try {
-                    const baru = await perpanjang(ketemu, aturan)
-                    onLog('perpanjang', ketemu.id)
-                    onOk(`Diperpanjang sampai ${formatTanggal(baru)}.`)
-                    const p = await pinjamanAktifEksemplar(ketemu.eksemplarId)
-                    if (p) setKetemu(p)
-                  } catch (err) {
-                    onGalat(err instanceof Error ? err.message : 'Gagal memperpanjang.')
-                  }
+                onClick={() => {
+                  if (window.confirm(`Tandai ${ketemu.eksemplarId} hilang (tidak dikembalikan)?`)) void lakukanKembali(true)
                 }}
               >
-                Perpanjang
+                Tandai hilang
               </button>
-            )}
+              {aturan && ketemu.jumlahPerpanjang < aturan.maksPerpanjang && (
+                <button
+                  type="button"
+                  className={btnGhost}
+                  disabled={proses}
+                  onClick={async () => {
+                    try {
+                      const baru = await perpanjang(ketemu, aturan)
+                      onLog('perpanjang', ketemu.id)
+                      onOk(`Diperpanjang sampai ${formatTanggal(baru)}.`)
+                      const p = await pinjamanAktifEksemplar(ketemu.eksemplarId)
+                      if (p) setKetemu(p)
+                      await muatDaftar()
+                    } catch (err) {
+                      onGalat(err instanceof Error ? err.message : 'Gagal memperpanjang.')
+                    }
+                  }}
+                >
+                  Perpanjang
+                </button>
+              )}
+              <button
+                type="button"
+                className={btnGhost}
+                disabled={proses}
+                onClick={() => {
+                  setKetemu(null)
+                  setEks(null)
+                  setKode('')
+                }}
+              >
+                Batal pilih
+              </button>
+            </div>
+            {eks && <div className="text-xs text-muted">Status eksemplar saat ini: {eks.status}</div>}
           </div>
-          {eks && <div className="text-xs text-muted">Status eksemplar saat ini: {eks.status}</div>}
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={hanyaTerlambat} onChange={(e) => setHanyaTerlambat(e.target.checked)} />
+          Hanya terlambat
+        </label>
+        <button type="button" className={btnGhost} onClick={() => void muatDaftar()} disabled={memuat}>
+          {memuat ? 'Memuat…' : 'Muat ulang'}
+        </button>
+        <span className="text-xs text-muted">{tampil.length} pinjaman</span>
+      </div>
+
+      {memuat && data.length === 0 ? (
+        <div className="card-soft p-4 text-sm text-muted">Memuat daftar pinjaman…</div>
+      ) : tampil.length === 0 ? (
+        <div className="card-soft p-4 text-sm text-muted">
+          {hanyaTerlambat ? 'Tidak ada pinjaman terlambat.' : 'Belum ada pinjaman aktif.'}
+        </div>
+      ) : (
+        <div className="card-soft">
+          <div className="border-b border-border px-4 py-3 font-semibold">
+            {hanyaTerlambat ? 'Pinjaman terlambat' : 'Pinjaman aktif'} — klik baris untuk mengembalikan
+          </div>
+          <ul className="divide-y divide-border">
+            {tampil.map((p) => {
+              const telat = terlambat(p)
+              const dipilih = ketemu?.id === p.id
+              return (
+                <li
+                  key={p.id}
+                  className={`flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm ${
+                    dipilih ? 'bg-muh-50 ring-1 ring-inset ring-muh-200' : 'hover:bg-surface-2'
+                  }`}
+                >
+                  <button type="button" className="min-w-0 flex-1 text-left" onClick={() => pilihDariDaftar(p)}>
+                    <div className="font-medium">{p.judul}</div>
+                    <div className="text-muted">
+                      <span className="font-mono">{p.eksemplarId}</span>
+                      {' · '}
+                      {p.peminjam.nama}
+                      {p.peminjam.tipe === 'siswa' && p.peminjam.kelas ? ` (${p.peminjam.kelas})` : ''}
+                      {p.peminjam.tipe === 'siswa' ? ` · NISN ${p.peminjam.id}` : ''}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted">
+                      Pinjam {formatTanggal(p.tglPinjam)} · jatuh tempo {formatTanggal(p.jatuhTempo)}
+                      {telat && ' (terlambat)'}
+                      {p.jumlahPerpanjang > 0 && ` · diperpanjang ${p.jumlahPerpanjang}×`}
+                    </div>
+                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {telat && <Badge>Terlambat</Badge>}
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-muh-600 hover:underline"
+                      onClick={() => pilihDariDaftar(p)}
+                    >
+                      {dipilih ? 'Dipilih' : 'Pilih'}
+                    </button>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
         </div>
       )}
     </div>
