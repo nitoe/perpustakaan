@@ -13,9 +13,15 @@ export interface HasilLookupBuku {
   sinopsis?: string
   bahasa?: string
   jenjangBaca?: string
-  /** URL sampul Open Library (opsional; tidak otomatis diunduh ke Firestore). */
+  /** URL sampul katalog publik (opsional; unduh lewat cariSampulBuku / tombol sampul). */
   sampulUrl?: string
   sumber: 'openlibrary' | 'googlebooks' | 'gemini'
+}
+
+export interface HasilSampul {
+  file: File
+  sumber: 'openlibrary' | 'googlebooks'
+  url: string
 }
 
 function isbnBersih(s: string): string {
@@ -43,6 +49,145 @@ function namaPengarang(authors: unknown): string | undefined {
   return nama.length ? nama.join('; ') : undefined
 }
 
+/** Naikkan http→https dan perbesar thumbnail Google Books bila memungkinkan. */
+function normUrlGambar(url: string): string {
+  let u = url.trim().replace(/^http:\/\//i, 'https://')
+  // Google Books: zoom=0/1 sering lebih besar dari thumbnail default
+  if (u.includes('books.google.') && !/[?&]zoom=/.test(u)) {
+    u += (u.includes('?') ? '&' : '?') + 'zoom=1'
+  }
+  return u
+}
+
+/**
+ * Unduh gambar dari URL katalog. Mengembalikan null jika gagal / terlalu kecil (placeholder).
+ * Open Library mendukung CORS; Google Books sering juga.
+ */
+async function unduhGambarSampul(url: string): Promise<File | null> {
+  try {
+    const res = await fetch(normUrlGambar(url), {
+      mode: 'cors',
+      redirect: 'follow',
+      headers: { Accept: 'image/*,*/*' },
+    })
+    if (!res.ok) return null
+    const blob = await res.blob()
+    const tipe = blob.type || res.headers.get('content-type') || ''
+    if (tipe && !tipe.startsWith('image/') && !tipe.includes('octet-stream')) return null
+    // Placeholder OL / gambar rusak biasanya sangat kecil
+    if (blob.size < 2500) return null
+    const ext = tipe.includes('png') ? 'png' : tipe.includes('webp') ? 'webp' : 'jpg'
+    return new File([blob], `sampul-katalog.${ext}`, { type: tipe.startsWith('image/') ? tipe : 'image/jpeg' })
+  } catch {
+    return null
+  }
+}
+
+/** Kandidat URL sampul dari ISBN (Open Library L/M, Google Books). */
+async function kandidatUrlDariIsbn(isbn: string): Promise<{ url: string; sumber: 'openlibrary' | 'googlebooks' }[]> {
+  const id = isbnBersih(isbn)
+  const out: { url: string; sumber: 'openlibrary' | 'googlebooks' }[] = []
+  if (id.length < 10) return out
+
+  // default=false → 404 jika tidak ada sampul (bukan gambar 1x1)
+  out.push({
+    url: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(id)}-L.jpg?default=false`,
+    sumber: 'openlibrary',
+  })
+  out.push({
+    url: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(id)}-M.jpg?default=false`,
+    sumber: 'openlibrary',
+  })
+
+  try {
+    const g = await lookupIsbnGoogle(id)
+    if (g?.sampulUrl) out.push({ url: g.sampulUrl, sumber: 'googlebooks' })
+  } catch {
+    /* abaikan */
+  }
+  return out
+}
+
+/** Kandidat dari pencarian judul (Open Library cover_i + Google Books). */
+async function kandidatUrlDariJudul(
+  judul: string,
+  pengarang?: string,
+): Promise<{ url: string; sumber: 'openlibrary' | 'googlebooks' }[]> {
+  const out: { url: string; sumber: 'openlibrary' | 'googlebooks' }[] = []
+  const q = judul.trim()
+  if (q.length < 2) return out
+
+  try {
+    const list = await cariJudul(pengarang ? `${q} ${pengarang}` : q, 5)
+    for (const h of list) {
+      if (h.sampulUrl) out.push({ url: h.sampulUrl, sumber: h.sumber === 'googlebooks' ? 'googlebooks' : 'openlibrary' })
+      if (h.isbn) {
+        const id = isbnBersih(h.isbn)
+        if (id.length >= 10) {
+          out.push({
+            url: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(id)}-L.jpg?default=false`,
+            sumber: 'openlibrary',
+          })
+        }
+      }
+    }
+  } catch {
+    /* abaikan */
+  }
+
+  try {
+    const url = new URL('https://www.googleapis.com/books/v1/volumes')
+    url.searchParams.set('q', pengarang ? `intitle:${q}+inauthor:${pengarang}` : `intitle:${q}`)
+    url.searchParams.set('maxResults', '3')
+    const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } })
+    if (res.ok) {
+      const data = (await res.json()) as {
+        items?: { volumeInfo?: { imageLinks?: { thumbnail?: string; smallThumbnail?: string } } }[]
+      }
+      for (const it of data.items || []) {
+        const img = it.volumeInfo?.imageLinks?.thumbnail || it.volumeInfo?.imageLinks?.smallThumbnail
+        if (img) out.push({ url: img, sumber: 'googlebooks' })
+      }
+    }
+  } catch {
+    /* abaikan */
+  }
+
+  // unik by URL
+  const seen = new Set<string>()
+  return out.filter((x) => {
+    const k = normUrlGambar(x.url)
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+}
+
+/**
+ * Cari sampul di katalog publik (Open Library → Google Books).
+ * Tidak memanggil AI. Mengembalikan null jika tidak ditemukan.
+ */
+export async function cariSampulBuku(input: {
+  judul?: string
+  isbn?: string
+  pengarang?: string
+}): Promise<HasilSampul | null> {
+  const kandidat: { url: string; sumber: 'openlibrary' | 'googlebooks' }[] = []
+  const isbn = (input.isbn || '').trim()
+  if (isbn) kandidat.push(...(await kandidatUrlDariIsbn(isbn)))
+  const judul = (input.judul || '').trim()
+  if (judul.length >= 2) kandidat.push(...(await kandidatUrlDariJudul(judul, input.pengarang)))
+
+  const seen = new Set<string>()
+  for (const k of kandidat) {
+    const u = normUrlGambar(k.url)
+    if (seen.has(u)) continue
+    seen.add(u)
+    const file = await unduhGambarSampul(u)
+    if (file) return { file, sumber: k.sumber, url: u }
+  }
+  return null
+}
 
 /** Lookup Google Books by ISBN (tanpa API key; kuota anonim). */
 async function lookupIsbnGoogle(isbn: string): Promise<HasilLookupBuku | null> {
@@ -81,8 +226,8 @@ async function lookupIsbnGoogle(isbn: string): Promise<HasilLookupBuku | null> {
     penerbit: info.publisher,
     tahun,
     isbn: isbn13 || isbn10 || id,
-    sinopsis: info.description?.slice(0, 2000),
-    bahasa,
+    sinopsis: info.description,
+    bahasa: bahasa || undefined,
     sampulUrl: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail,
     sumber: 'googlebooks',
   }
@@ -97,11 +242,9 @@ export async function lookupIsbn(isbn: string): Promise<HasilLookupBuku | null> 
     headers: { Accept: 'application/json' },
   })
   if (res.status === 404) {
-    // Banyak ISBN Indonesia tidak ada di Open Library — coba Google Books
     return lookupIsbnGoogle(id)
   }
   if (!res.ok) {
-    // Open Library error: tetap coba Google Books
     try {
       const g = await lookupIsbnGoogle(id)
       if (g) return g
@@ -116,7 +259,6 @@ export async function lookupIsbn(isbn: string): Promise<HasilLookupBuku | null> 
   if (!judul) return null
 
   let pengarang = namaPengarang(d.authors)
-  // authors sering hanya { key: "/authors/..." } — ambil dari search bila perlu
   if (!pengarang) {
     try {
       const s = await cariJudul(id, 1)
@@ -127,66 +269,61 @@ export async function lookupIsbn(isbn: string): Promise<HasilLookupBuku | null> 
   }
 
   const publishers = d.publishers
-  const penerbit =
-    Array.isArray(publishers) && typeof publishers[0] === 'string'
-      ? publishers[0]
-      : Array.isArray(publishers) && publishers[0] && typeof publishers[0] === 'object' && 'name' in (publishers[0] as object)
-        ? String((publishers[0] as { name: string }).name)
-        : undefined
-
+  const penerbit = Array.isArray(publishers) && typeof publishers[0] === 'string' ? publishers[0] : undefined
+  const tahun = ambilTahun(typeof d.publish_date === 'string' ? d.publish_date : undefined)
+  const isbn13 = Array.isArray(d.isbn_13) ? String(d.isbn_13[0]) : undefined
+  const isbn10 = Array.isArray(d.isbn_10) ? String(d.isbn_10[0]) : undefined
   const desk = d.description
   let sinopsis: string | undefined
   if (typeof desk === 'string') sinopsis = desk
-  else if (desk && typeof desk === 'object' && 'value' in desk) sinopsis = String((desk as { value: string }).value)
-
-  const isbn13 = Array.isArray(d.isbn_13) ? String(d.isbn_13[0]) : undefined
-  const isbn10 = Array.isArray(d.isbn_10) ? String(d.isbn_10[0]) : undefined
+  else if (desk && typeof desk === 'object' && 'value' in desk && typeof (desk as { value: unknown }).value === 'string') {
+    sinopsis = (desk as { value: string }).value
+  }
 
   return {
     judul,
     pengarang,
     penerbit,
-    tahun: ambilTahun(typeof d.publish_date === 'string' ? d.publish_date : undefined),
+    tahun,
     isbn: isbn13 || isbn10 || id,
-    sinopsis: sinopsis?.slice(0, 2000),
-    bahasa: Array.isArray(d.languages) ? undefined : undefined,
-    sampulUrl: `https://covers.openlibrary.org/b/isbn/${id}-M.jpg`,
+    sinopsis,
+    bahasa: 'Indonesia',
+    sampulUrl: `https://covers.openlibrary.org/b/isbn/${id}-L.jpg?default=false`,
     sumber: 'openlibrary',
   }
 }
 
-/** Cari dari judul / kata kunci. */
-export async function cariJudul(q: string, batas = 8): Promise<HasilLookupBuku[]> {
-  const query = q.trim()
-  if (query.length < 2) return []
-
+/** Cari judul di Open Library (maks. beberapa hasil). */
+export async function cariJudul(q: string, limit = 8): Promise<HasilLookupBuku[]> {
   const url = new URL('https://openlibrary.org/search.json')
-  url.searchParams.set('q', query)
-  url.searchParams.set('limit', String(batas))
+  url.searchParams.set('q', q.trim())
+  url.searchParams.set('limit', String(Math.min(20, Math.max(1, limit))))
   url.searchParams.set('fields', 'key,title,author_name,first_publish_year,isbn,publisher,language,cover_i')
-
   const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } })
   if (!res.ok) throw new Error(`Pencarian gagal (${res.status}).`)
-
   const data = (await res.json()) as { docs?: Record<string, unknown>[] }
-  const docs = data.docs ?? []
+  const docs = data.docs || []
   return docs
     .map((d) => {
       const judul = typeof d.title === 'string' ? d.title : undefined
       if (!judul) return null
-      const authors = Array.isArray(d.author_name) ? (d.author_name as string[]).join('; ') : undefined
+      const authors = Array.isArray(d.author_name) ? (d.author_name as string[]) : []
       const isbns = Array.isArray(d.isbn) ? (d.isbn as string[]) : []
-      const isbn = isbns.find((x) => x.length === 13) || isbns[0]
-      const publishers = Array.isArray(d.publisher) ? (d.publisher as string[]) : []
+      const isbn = isbns.find((x) => String(x).length === 13) || isbns[0]
+      const pubs = Array.isArray(d.publisher) ? (d.publisher as string[]) : []
       const tahun = typeof d.first_publish_year === 'number' ? d.first_publish_year : undefined
       const coverId = typeof d.cover_i === 'number' ? d.cover_i : undefined
       return {
         judul,
-        pengarang: authors,
-        penerbit: publishers[0],
+        pengarang: authors.length ? authors.join('; ') : undefined,
+        penerbit: pubs[0],
         tahun: tahun && tahun >= 1000 && tahun <= 2100 ? tahun : undefined,
-        isbn,
-        sampulUrl: coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : isbn ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg` : undefined,
+        isbn: isbn ? String(isbn) : undefined,
+        sampulUrl: coverId
+          ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg?default=false`
+          : isbn
+            ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(String(isbn))}-L.jpg?default=false`
+            : undefined,
         sumber: 'openlibrary' as const,
       }
     })

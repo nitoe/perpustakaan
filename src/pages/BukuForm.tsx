@@ -10,7 +10,7 @@ import {
   ubahBuku,
   type DataBuku,
 } from '../lib/katalog'
-import { cariJudul, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
+import { cariJudul, cariSampulBuku, lookupIsbn, type HasilLookupBuku } from '../lib/bukuApi'
 import { generateBukuMetaAi, generateBukuSampulAi } from '../lib/generateBukuAi'
 import { KELAS_DDC, labelDdc } from '../lib/ddc'
 import { useKoleksi } from '../lib/useKoleksi'
@@ -168,28 +168,52 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
     setCariApi(false)
   }
 
-  /** Generate sampul AI (gemini-3.1-flash-lite-image) bila belum ada foto. */
+  /**
+   * Cari sampul di katalog publik (Open Library / Google Books) dulu.
+   * Bila tidak ketemu, generate dengan AI (Gemini image).
+   */
   async function dariSampulAi() {
     setGalat('')
     setInfo('')
     const q = f.judul.trim()
-    if (q.length < 2) return setGalat('Isi judul dulu untuk membuat sampul AI.')
+    const isbn = f.isbn.trim()
+    if (q.length < 2 && isbn.length < 10) {
+      return setGalat('Isi judul atau ISBN dulu untuk mencari / membuat sampul.')
+    }
     setSampulProses(true)
     try {
+      // 1) Katalog publik
+      const ketemu = await cariSampulBuku({
+        judul: q || undefined,
+        isbn: isbn || undefined,
+        pengarang: f.pengarang.trim() || undefined,
+      })
+      if (ketemu) {
+        setFotoBaru(await kecilkanFoto(ketemu.file))
+        const dari = ketemu.sumber === 'googlebooks' ? 'Google Books' : 'Open Library'
+        setInfo(`Sampul ditemukan di ${dari}. Periksa lalu simpan buku agar tersimpan di katalog.`)
+        return
+      }
+
+      // 2) AI — butuh judul minimal
+      if (q.length < 2) {
+        setGalat('Sampul tidak ditemukan di katalog publik. Isi judul untuk generate AI, atau unggah manual.')
+        return
+      }
       const dataUrl = await generateBukuSampulAi({
         judul: q,
         pengarang: f.pengarang.trim() || undefined,
       })
-      // Kecilkan agar muat di perpus_foto (batas ~110k)
       const res = await fetch(dataUrl)
       const blob = await res.blob()
       const file = new File([blob], 'sampul-ai.jpg', { type: blob.type || 'image/jpeg' })
       setFotoBaru(await kecilkanFoto(file))
-      setInfo('Sampul AI dibuat. Periksa lalu simpan buku agar tersimpan di katalog.')
+      setInfo('Sampul tidak ada di katalog publik; dibuat dengan AI. Periksa lalu simpan buku.')
     } catch (e) {
-      setGalat(e instanceof Error ? e.message : 'Gagal membuat sampul AI.')
+      setGalat(e instanceof Error ? e.message : 'Gagal mencari / membuat sampul.')
+    } finally {
+      setSampulProses(false)
     }
-    setSampulProses(false)
   }
 
   async function pilihFoto(file: File | undefined) {
@@ -329,8 +353,9 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         <div className="card-soft space-y-3 p-4">
           <div className="text-sm font-medium">Bantuan isi data</div>
           <p className="text-xs text-muted">
-            Cari ISBN/judul memakai katalog publik (Open Library / Google Books). Generate AI metadata &
-            sampul lewat Cloud Function (Gemini; key tidak di browser). Hanya admin/pustakawan. Hasil wajib diperiksa.
+            Cari ISBN/judul memakai katalog publik (Open Library / Google Books). Tombol sampul: cari cover di
+            internet dulu, baru generate AI bila tidak ketemu (Gemini; key di server). Hanya admin/pustakawan.
+            Hasil wajib diperiksa sebelum disimpan.
           </p>
           <div className="flex flex-wrap gap-2">
             <button type="button" className={btnGhost} disabled={cariApi} onClick={() => void dariIsbn()}>
@@ -433,7 +458,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         </div>
 
         <div className="card-soft space-y-4 p-4">
-          <Field label="Sampul" hint="Unggah manual, buat dari PDF, atau Generate AI. Otomatis dikecilkan.">
+          <Field label="Sampul" hint="Unggah manual, dari PDF, atau cari di katalog publik (lalu AI bila perlu). Otomatis dikecilkan.">
             <input type="file" accept="image/*" onChange={(e) => void pilihFoto(e.target.files?.[0])} className="block w-full text-sm" />
           </Field>
           <div className="flex flex-wrap gap-2">
@@ -443,7 +468,7 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
               disabled={sampulProses || cariApi || !f.judul.trim()}
               onClick={() => void dariSampulAi()}
             >
-              {sampulProses ? 'Membuat sampul…' : 'Generate sampul AI'}
+              {sampulProses ? 'Mencari / membuat sampul…' : 'Cari sampul / Generate AI'}
             </button>
           </div>
           {fotoBaru ? (
