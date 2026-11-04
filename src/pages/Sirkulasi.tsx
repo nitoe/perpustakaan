@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { catat } from '../lib/data'
 import { useKoleksi } from '../lib/useKoleksi'
@@ -19,6 +19,7 @@ import {
 } from '../lib/sirkulasi'
 import type { Anggota, Aturan, Eksemplar, KondisiBuku, Peminjam, Peminjaman } from '../lib/tipe'
 import PilihSiswaAktif from '../components/PilihSiswaAktif'
+import CariEksemplar from '../components/CariEksemplar'
 import { Badge, Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
 type Mode = 'pinjam' | 'kembali' | 'daftar'
@@ -138,7 +139,6 @@ function ModePinjam({
   const [aktif, setAktif] = useState<Peminjaman[]>([])
   const [kodeEks, setKodeEks] = useState('')
   const [proses, setProses] = useState(false)
-  const refEks = useRef<HTMLInputElement>(null)
 
   const anggotaAktif = anggotaList.data
     .filter((a) => a.aktif !== false)
@@ -157,7 +157,6 @@ function ModePinjam({
       setInfoSiswa(s)
       setPeminjam(p)
       setAktif(await pinjamanAktifPeminjam(p.id))
-      refEks.current?.focus()
     } catch (e) {
       const kode = (e as { code?: string })?.code
       onGalat(kode === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal memuat data peminjam.')
@@ -183,7 +182,6 @@ function ModePinjam({
       setInfoAnggota(a)
       setPeminjam(p)
       setAktif(await pinjamanAktifPeminjam(p.id))
-      refEks.current?.focus()
     } catch (e) {
       const kode = (e as { code?: string })?.code
       onGalat(kode === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal memuat data anggota.')
@@ -214,7 +212,6 @@ function ModePinjam({
       onOk(`Berhasil dipinjamkan: ${e.judul} (${e.id}). Jatuh tempo ${formatTanggal(hasil.jatuhTempo)}.`)
       setKodeEks('')
       setAktif(await pinjamanAktifPeminjam(peminjam.id))
-      refEks.current?.focus()
     } catch (err) {
       onGalat(err instanceof Error ? err.message : 'Gagal meminjamkan.')
     }
@@ -290,23 +287,14 @@ function ModePinjam({
 
         {peminjam && (
           <>
-            <Field label="Kode eksemplar" hint="Pindai label buku atau ketik PRP-…, lalu Enter.">
-              <input
-                ref={refEks}
-                className={`${inputCls} font-mono`}
-                value={kodeEks}
-                onChange={(e) => setKodeEks(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    void lakukanPinjam()
-                  }
-                }}
-                placeholder="PRP-000123"
-                disabled={proses}
-              />
-            </Field>
-            <button type="button" className={btnPrimary} disabled={proses || !aturan} onClick={() => void lakukanPinjam()}>
+            <CariEksemplar
+              nilai={kodeEks}
+              onPilih={setKodeEks}
+              disabled={proses}
+              status="tersedia"
+              placeholder="PRP-… atau judul buku"
+            />
+            <button type="button" className={btnPrimary} disabled={proses || !aturan || !kodeEks.trim()} onClick={() => void lakukanPinjam()}>
               {proses ? 'Memproses…' : 'Pinjamkan'}
             </button>
           </>
@@ -361,7 +349,6 @@ function ModeKembali({
   const [eks, setEks] = useState<Eksemplar | null>(null)
   const [kondisi, setKondisi] = useState<KondisiBuku>('baik')
   const [proses, setProses] = useState(false)
-  const ref = useRef<HTMLInputElement>(null)
 
   async function cari() {
     onGalat('')
@@ -409,7 +396,6 @@ function ModeKembali({
       setKetemu(null)
       setEks(null)
       setKode('')
-      ref.current?.focus()
     } catch (err) {
       onGalat(err instanceof Error ? err.message : 'Gagal mengembalikan.')
     }
@@ -418,23 +404,13 @@ function ModeKembali({
 
   return (
     <div className="card-soft space-y-4 p-4">
-      <Field label="Kode eksemplar" hint="Pindai label buku yang dikembalikan, lalu Enter.">
-        <input
-          ref={ref}
-          className={`${inputCls} font-mono`}
-          value={kode}
-          autoFocus
-          onChange={(e) => setKode(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              void cari()
-            }
-          }}
-          placeholder="PRP-000123"
-        />
-      </Field>
-      <button type="button" className={btnGhost} onClick={() => void cari()}>
+      <CariEksemplar
+        nilai={kode}
+        onPilih={setKode}
+        status="dipinjam"
+        placeholder="PRP-… atau judul yang dipinjam"
+      />
+      <button type="button" className={btnGhost} onClick={() => void cari()} disabled={!kode.trim()}>
         Cari
       </button>
 
