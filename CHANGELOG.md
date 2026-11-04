@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.14.24 — Izin login siswa (aktivasi oleh pustakawan)
+- Koleksi baru **`perpus_izin_siswa`** (ID = NIPD / id dokumen `siswa`). Field utama: `aktif`, nama, kelas, nisn, diaktifkanOleh.
+- Login di `/siswa/masuk` **hanya** menampilkan dan menerima siswa yang sudah diaktifkan (`aktif: true`). Nama tetap diambil otomatis dari data Penilaian.
+- Halaman baru **Izin siswa** (`/izin-siswa`, menu Layanan): pilih kelas → daftar siswa → aktifkan per orang atau seluruh kelas. Nonaktifkan kapan saja tanpa mengubah status di Penilaian.
+- Rules: baca `perpus_izin_siswa` publik (perlu untuk dropdown login tanpa Auth); tulis hanya admin/pustakawan.
+- **Deploy wajib:** ganti **seluruh** `firestore.rules` di repo **SDM01Penilaian** dengan file lengkap yang disertakan di arsip (sudah termasuk `perpus_izin_siswa` + rules lain). Lalu `firebase deploy --only firestore:rules`.
+- ANTIREGRESI: jangan mengandalkan field `aktif` di koleksi `siswa` untuk izin perpustakaan; selalu pakai `perpus_izin_siswa`.
+
 ## 0.14.23 — Perbaikan export app untuk Cloud Functions
 - `src/lib/firebase.ts` mengekspor `app` agar `generateBukuAi.ts` bisa memanggil `getFunctions(app, region)` (perbaiki error TS2459 saat build).
 

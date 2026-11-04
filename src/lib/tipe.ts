@@ -168,6 +168,26 @@ export interface JurnalBaca {
   updatedAt?: Timestamp
 }
 
+/**
+ * Izin login area siswa (koleksi perpus_izin_siswa).
+ * ID dokumen = ID siswa di koleksi `siswa` (NIPD).
+ * Siswa hanya boleh masuk /siswa/* bila dokumen ini ada dan aktif === true.
+ * Data nama/kelas disalin agar daftar admin tidak selalu baca koleksi siswa.
+ */
+export interface IzinSiswa {
+  id: string
+  aktif: boolean
+  nama?: string
+  kelas?: string
+  nisn?: string
+  diaktifkanOleh?: string
+  diaktifkanAt?: Timestamp
+  dinonaktifkanOleh?: string
+  dinonaktifkanAt?: Timestamp
+  catatan?: string
+  updatedAt?: Timestamp
+}
+
 export interface Aturan {
   lamaPinjamHari: number
   maksSiswa: number

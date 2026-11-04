@@ -2,6 +2,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './firebase'
 import type { SiswaDasar } from './sirkulasi'
 import { idPeminjamSiswa } from './sirkulasi'
+import { daftarIdIzinAktif, siswaIzinAktif } from './izinSiswa'
 
 const STORAGE_KEY = 'perpus_siswa_sesi'
 
@@ -46,8 +47,29 @@ export function hapusSesiSiswa() {
   sessionStorage.removeItem(STORAGE_KEY)
 }
 
-/** Siswa aktif satu kelas (untuk dropdown nama di halaman masuk siswa). */
+/**
+ * Siswa aktif sekolah di satu kelas yang sudah diizinkan login perpustakaan.
+ * Hanya yang punya dokumen perpus_izin_siswa dengan aktif=true yang muncul di dropdown.
+ */
 export async function muatSiswaKelas(kelas: string): Promise<SiswaDasar[]> {
+  if (!isFirebaseConfigured) throw new Error('Firebase belum dikonfigurasi.')
+  const k = kelas.trim().toUpperCase()
+  if (!k) return []
+  const [snap, izinAktif] = await Promise.all([
+    getDocs(query(collection(db, 'siswa'), where('kelas', '==', k))),
+    daftarIdIzinAktif(),
+  ])
+  return snap.docs
+    .map((d) => ({ id: d.id, ...(d.data() as Omit<SiswaDasar, 'id'>) }))
+    .filter((s) => s.aktif !== false && izinAktif.has(s.id))
+    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'))
+}
+
+/**
+ * Semua siswa aktif sekolah di satu kelas (tanpa filter izin perpustakaan).
+ * Dipakai halaman aktivasi admin/pustakawan.
+ */
+export async function muatSemuaSiswaKelas(kelas: string): Promise<SiswaDasar[]> {
   if (!isFirebaseConfigured) throw new Error('Firebase belum dikonfigurasi.')
   const k = kelas.trim().toUpperCase()
   if (!k) return []
@@ -60,6 +82,7 @@ export async function muatSiswaKelas(kelas: string): Promise<SiswaDasar[]> {
 
 /**
  * Verifikasi login siswa: pilih nama (dari daftar kelas), sandi = NISN.
+ * Wajib sudah diaktifkan di perpus_izin_siswa.
  * Tidak memakai Firebase Auth; menyimpan sesi di sessionStorage.
  */
 export async function loginSiswa(siswa: SiswaDasar, sandiNisn: string): Promise<SiswaSesi> {
@@ -70,6 +93,12 @@ export async function loginSiswa(siswa: SiswaDasar, sandiNisn: string): Promise<
   const alternatif = siswa.id
   if (input !== nisnBenar && input !== alternatif) {
     throw new Error('NISN tidak cocok. Periksa lagi atau tanya guru/pustakawan.')
+  }
+  const izinOk = await siswaIzinAktif(siswa.id)
+  if (!izinOk) {
+    throw new Error(
+      'Akun perpustakaan belum diaktifkan. Minta pustakawan atau admin mengaktifkan nama Anda dulu.',
+    )
   }
   const sesi: SiswaSesi = {
     id: siswa.id,

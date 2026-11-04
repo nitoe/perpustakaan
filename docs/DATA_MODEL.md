@@ -8,6 +8,7 @@ Semua koleksi berada di Firestore project `sdm01kukusan-2e735` (bersama Penilaia
 | `perpus_buku` | otomatis | judul, pengarang, penerbit, tahun, isbn, kategoriId, klasifikasi, bahasa, jenjangBaca, sinopsis, coverId, jenis, tautanDigital, formatDigital, publik, eksemplarTotal, eksemplarTersedia | admin, pustakawan |
 | `perpus_eksemplar` | kode di label (`PRP-000123`) | bukuId, judul, rak, kondisi, status, tahunMasuk, sumber | admin, pustakawan |
 | `perpus_anggota` | otomatis | nama, jenis (`guru` / `karyawan` / `kelas`), aktif | admin, pustakawan |
+| `perpus_izin_siswa` | ID = NIPD siswa (`siswa/{id}`) | aktif, nama, kelas, nisn, diaktifkanOleh, diaktifkanAt | admin, pustakawan |
 | `perpus_peminjaman` | otomatis | eksemplarId, bukuId, judul, peminjam {tipe, id, nama, kelas}, tglPinjam, jatuhTempo, tglKembali, status, jumlahPerpanjang, kondisiKembali, petugasUid, catatan | admin, pustakawan |
 | `perpus_kunjungan` | otomatis | tanggal, waktu, pengunjung {tipe, id, nama, kelas}, keperluan | admin, pustakawan |
 | `perpus_foto` | otomatis | data (JPEG base64, maks 120.000 karakter), createdBy, createdAt | admin, pustakawan |
@@ -20,6 +21,7 @@ Fase 2 dan 3 (belum ada aturannya): `perpus_usulan`, `perpus_reservasi`, `perpus
 ## Hubungan dengan data lain
 
 - **Siswa**: peminjam bertipe `siswa` memakai NIS = ID dokumen `siswa/{nis}` (milik Penilaian). Nama dan kelas disalin ke dokumen peminjaman agar daftar tidak perlu membaca `siswa` lagi.
+- **Izin area siswa**: koleksi `perpus_izin_siswa` (ID = NIPD). Hanya siswa dengan `aktif: true` yang boleh login di `/siswa/masuk`. Data Penilaian tidak diubah.
 - **Pengguna**: `users/{uid}.peranPerpus` menentukan peran. Perpustakaan tidak menyimpan data pengguna sendiri.
 
 ## Arti penghitung pada `perpus_buku`

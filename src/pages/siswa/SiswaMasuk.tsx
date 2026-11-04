@@ -38,7 +38,7 @@ export default function SiswaMasuk() {
       .then((list) => {
         if (!batal) {
           setDaftar(list)
-          if (list.length === 0) setGalat(`Tidak ada siswa aktif di kelas ${kelas}.`)
+          if (list.length === 0) setGalat(`Tidak ada siswa yang diizinkan login di kelas ${kelas}. Minta pustakawan mengaktifkan di menu Izin siswa.`)
         }
       })
       .catch((e) => {

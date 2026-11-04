@@ -15,6 +15,7 @@ import Kunjungan from './pages/Kunjungan'
 import Laporan from './pages/Laporan'
 import Digital from './pages/Digital'
 import Anggota from './pages/Anggota'
+import IzinSiswa from './pages/IzinSiswa'
 import Pengaturan from './pages/Pengaturan'
 import Reservasi from './pages/Reservasi'
 import Usulan from './pages/Usulan'
@@ -97,6 +98,7 @@ export default function App() {
         <Route path="laporan" element={<PenjagaLaporan><Laporan /></PenjagaLaporan>} />
         <Route path="digital" element={<Digital />} />
         <Route path="anggota" element={<Penjaga><Anggota /></Penjaga>} />
+        <Route path="izin-siswa" element={<Penjaga><IzinSiswa /></Penjaga>} />
         <Route path="pengaturan" element={<Pengaturan />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

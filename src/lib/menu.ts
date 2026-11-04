@@ -38,6 +38,7 @@ export const MENU: MenuItem[] = [
   { path: '/reservasi', label: 'Reservasi', untuk: KELOLA, aktif: true, grup: 'layanan' },
   { path: '/kunjungan', label: 'Kunjungan', untuk: KELOLA, aktif: true, grup: 'layanan' },
   { path: '/anggota', label: 'Anggota', untuk: KELOLA, aktif: true, grup: 'layanan' },
+  { path: '/izin-siswa', label: 'Izin siswa', untuk: KELOLA, aktif: true, grup: 'layanan' },
 
   { path: '/impor', label: 'Impor', untuk: KELOLA, aktif: true, grup: 'data' },
   { path: '/label', label: 'Label', untuk: KELOLA, aktif: true, grup: 'data' },
