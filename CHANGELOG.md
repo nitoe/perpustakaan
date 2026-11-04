@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.14.37 — Sambutan login tampil di smartphone
+- Panel hero (kutipan, slogan, ilustrasi) di halaman `/masuk` dan `/siswa/masuk` tetap ditampilkan di atas form pada layar ≤900px.
+- Sebelumnya `.auth-hero { display: none }` di mobile sehingga hanya form login yang terlihat.
+
 ## 0.14.36 — Ilustrasi kartu beranda siswa
 - Kartu Rak Baca, Katalog Pinjam, Pinjaman Saya, dan Jurnal Baca memakai ilustrasi (bukan gradien polos).
 - Aset di `public/siswa/*.png`.
