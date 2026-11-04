@@ -1,10 +1,12 @@
 /**
  * Pembantu PDF (pdfjs-dist).
+ * Polyfill + build **legacy** agar Safari/iOS & Chrome Android lama tidak error
+ * (getOrInsertComputed / Promise.withResolvers).
  * Worker di-bundle lewat Vite agar mematuhi CSP 'self'.
- * Pasang dulu: npm install pdfjs-dist
  */
-import * as pdfjs from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import './pdfPolyfill'
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
+import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
