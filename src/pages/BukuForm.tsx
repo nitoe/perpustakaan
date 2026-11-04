@@ -200,9 +200,16 @@ function Isi({ awal, kategori }: { awal: Buku | null; kategori: Kategori[] }) {
         setGalat('Sampul tidak ditemukan di katalog publik. Isi judul untuk generate AI, atau unggah manual.')
         return
       }
+      const namaKategori = kategori.find((k) => k.id === f.kategoriId)?.nama
       const dataUrl = await generateBukuSampulAi({
         judul: q,
         pengarang: f.pengarang.trim() || undefined,
+        penerbit: f.penerbit.trim() || undefined,
+        kategori: namaKategori || undefined,
+        klasifikasi: f.klasifikasi.trim() || undefined,
+        jenjangBaca: f.jenjangBaca.trim() || undefined,
+        sinopsis: f.sinopsis.trim() || undefined,
+        bahasa: f.bahasa.trim() || undefined,
       })
       const res = await fetch(dataUrl)
       const blob = await res.blob()

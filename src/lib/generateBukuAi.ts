@@ -15,6 +15,18 @@ export interface MetaBukuAi {
   sumber: 'gemini'
 }
 
+/** Konteks untuk generate sampul agar gaya menyesuaikan jenis buku. */
+export interface SampulAiInput {
+  judul: string
+  pengarang?: string
+  penerbit?: string
+  kategori?: string
+  klasifikasi?: string
+  jenjangBaca?: string
+  sinopsis?: string
+  bahasa?: string
+}
+
 function pesan(err: unknown): string {
   if (err && typeof err === 'object' && 'message' in err) {
     const m = String((err as { message: unknown }).message || '')
@@ -44,14 +56,11 @@ export async function generateBukuMetaAi(input: {
 }
 
 /**
- * Generate gambar sampul dari judul (+ pengarang opsional).
- * Mengembalikan data URL; simpan lewat simpanFoto() seperti unggah manual.
+ * Generate gambar sampul. Kirim sebanyak mungkin konteks (kategori, jenjang, sinopsis)
+ * agar server memilih gaya yang tepat dalam satu kali generate.
  */
-export async function generateBukuSampulAi(input: {
-  judul: string
-  pengarang?: string
-}): Promise<string> {
-  const panggil = httpsCallable<{ judul: string; pengarang?: string }, { dataUrl: string }>(
+export async function generateBukuSampulAi(input: SampulAiInput): Promise<string> {
+  const panggil = httpsCallable<SampulAiInput, { dataUrl: string }>(
     getFunctions(app, REGION),
     'generateBukuSampulAi',
   )
