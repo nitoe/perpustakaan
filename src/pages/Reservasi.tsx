@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { catat } from '../lib/data'
 import { useKoleksi } from '../lib/useKoleksi'
-import { cariSiswa, kePeminjamSiswa, cariAnggota, kePeminjamAnggota } from '../lib/sirkulasi'
+import { kePeminjamAnggota, kePeminjamSiswa, type SiswaDasar } from '../lib/sirkulasi'
 import { buatReservasi, daftarReservasiAktif, ubahStatusReservasi } from '../lib/reservasi'
-import type { Buku, Reservasi as TReservasi } from '../lib/tipe'
+import type { Anggota, Buku, Reservasi as TReservasi } from '../lib/tipe'
+import PilihSiswaAktif from '../components/PilihSiswaAktif'
 import { Badge, Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
 const NAMA_STATUS: Record<TReservasi['status'], string> = {
@@ -17,6 +18,7 @@ const NAMA_STATUS: Record<TReservasi['status'], string> = {
 export default function Reservasi() {
   const { profil } = useAuth()
   const buku = useKoleksi<Buku>('perpus_buku')
+  const anggotaList = useKoleksi<Anggota>('perpus_anggota')
   const [list, setList] = useState<TReservasi[]>([])
   const [galat, setGalat] = useState('')
   const [ok, setOk] = useState('')
@@ -25,7 +27,8 @@ export default function Reservasi() {
   const [bukuId, setBukuId] = useState('')
   const [cariBuku, setCariBuku] = useState('')
   const [tipe, setTipe] = useState<'siswa' | 'anggota'>('siswa')
-  const [kodePemesan, setKodePemesan] = useState('')
+  const [siswaTerpilih, setSiswaTerpilih] = useState<SiswaDasar | null>(null)
+  const [anggotaId, setAnggotaId] = useState('')
   const [proses, setProses] = useState(false)
 
   const muat = useCallback(async () => {
@@ -53,6 +56,10 @@ export default function Reservasi() {
     })
     .slice(0, 40)
 
+  const anggotaAktif = anggotaList.data
+    .filter((a) => a.aktif !== false)
+    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'))
+
   async function simpan() {
     setGalat('')
     setOk('')
@@ -62,18 +69,18 @@ export default function Reservasi() {
     try {
       let pemesan
       if (tipe === 'siswa') {
-        const s = await cariSiswa(kodePemesan.trim())
-        if (!s) throw new Error('Siswa tidak ditemukan.')
-        pemesan = kePeminjamSiswa(s)
+        if (!siswaTerpilih) throw new Error('Pilih siswa dari dropdown.')
+        pemesan = kePeminjamSiswa(siswaTerpilih)
       } else {
-        const a = await cariAnggota(kodePemesan.trim())
-        if (!a) throw new Error('Anggota tidak ditemukan.')
+        const a = anggotaAktif.find((x) => x.id === anggotaId)
+        if (!a) throw new Error('Pilih anggota dari dropdown.')
         pemesan = kePeminjamAnggota(a)
       }
       const id = await buatReservasi({ bukuId: b.id, judul: b.judul, pemesan })
       void catat(profil, 'reservasi', 'perpus_reservasi', id)
       setOk(`Reservasi dicatat: ${b.judul} untuk ${pemesan.nama}.`)
-      setKodePemesan('')
+      setSiswaTerpilih(null)
+      setAnggotaId('')
       await muat()
     } catch (err) {
       setGalat(err instanceof Error ? err.message : 'Gagal membuat reservasi.')
@@ -90,6 +97,8 @@ export default function Reservasi() {
       setGalat('Gagal mengubah status.')
     }
   }
+
+  const bisaSimpan = bukuId && (tipe === 'siswa' ? !!siswaTerpilih : !!anggotaId)
 
   return (
     <div className="w-full">
@@ -120,17 +129,43 @@ export default function Reservasi() {
           </select>
         </Field>
         <div className="flex gap-2">
-          <button type="button" className={tipe === 'siswa' ? btnPrimary : btnGhost} onClick={() => setTipe('siswa')}>
+          <button
+            type="button"
+            className={tipe === 'siswa' ? btnPrimary : btnGhost}
+            onClick={() => {
+              setTipe('siswa')
+              setSiswaTerpilih(null)
+              setAnggotaId('')
+            }}
+          >
             Siswa
           </button>
-          <button type="button" className={tipe === 'anggota' ? btnPrimary : btnGhost} onClick={() => setTipe('anggota')}>
+          <button
+            type="button"
+            className={tipe === 'anggota' ? btnPrimary : btnGhost}
+            onClick={() => {
+              setTipe('anggota')
+              setSiswaTerpilih(null)
+            }}
+          >
             Anggota
           </button>
         </div>
-        <Field label={tipe === 'siswa' ? 'NISN' : 'ID anggota'}>
-          <input className={inputCls} value={kodePemesan} onChange={(e) => setKodePemesan(e.target.value)} />
-        </Field>
-        <button type="button" className={btnPrimary} disabled={proses || !bukuId || !kodePemesan.trim()} onClick={() => void simpan()}>
+        {tipe === 'siswa' ? (
+          <PilihSiswaAktif nilai={siswaTerpilih} onPilih={setSiswaTerpilih} />
+        ) : (
+          <Field label="Nama anggota">
+            <select className={inputCls} value={anggotaId} onChange={(e) => setAnggotaId(e.target.value)}>
+              <option value="">— Pilih anggota —</option>
+              {anggotaAktif.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.nama}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+        <button type="button" className={btnPrimary} disabled={proses || !bisaSimpan} onClick={() => void simpan()}>
           {proses ? 'Menyimpan…' : 'Catat reservasi'}
         </button>
       </div>

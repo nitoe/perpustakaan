@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { catat } from '../lib/data'
+import { useKoleksi } from '../lib/useKoleksi'
 import {
   ambilAturan,
   ambilEksemplar,
-  cariAnggota,
-  cariSiswa,
   daftarPinjamanAktif,
   formatTanggal,
   kembalikan,
@@ -19,6 +18,7 @@ import {
   type SiswaDasar,
 } from '../lib/sirkulasi'
 import type { Anggota, Aturan, Eksemplar, KondisiBuku, Peminjam, Peminjaman } from '../lib/tipe'
+import PilihSiswaAktif from '../components/PilihSiswaAktif'
 import { Badge, Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
 type Mode = 'pinjam' | 'kembali' | 'daftar'
@@ -46,7 +46,7 @@ export default function Sirkulasi() {
     <div className="w-full">
       <PageHeader
         judul="Sirkulasi"
-        keterangan="Pinjam, kembalikan, dan perpanjang buku. Pindai atau ketik NISN lalu kode eksemplar."
+        keterangan="Pinjam, kembalikan, dan perpanjang buku. Pilih siswa dari dropdown (yang sudah diaktifkan) atau pindai kode eksemplar."
       />
 
       <div className="mb-4 flex gap-2">
@@ -129,8 +129,9 @@ function ModePinjam({
   onOk: (s: string) => void
   onLog: (tindakan: string, id: string) => void
 }) {
-  const [kodePeminjam, setKodePeminjam] = useState('')
+  const anggotaList = useKoleksi<Anggota>('perpus_anggota')
   const [tipe, setTipe] = useState<'siswa' | 'anggota'>('siswa')
+  const [anggotaId, setAnggotaId] = useState('')
   const [peminjam, setPeminjam] = useState<Peminjam | null>(null)
   const [infoSiswa, setInfoSiswa] = useState<SiswaDasar | null>(null)
   const [infoAnggota, setInfoAnggota] = useState<Anggota | null>(null)
@@ -139,52 +140,55 @@ function ModePinjam({
   const [proses, setProses] = useState(false)
   const refEks = useRef<HTMLInputElement>(null)
 
-  const muatPeminjam = useCallback(async () => {
+  const anggotaAktif = anggotaList.data
+    .filter((a) => a.aktif !== false)
+    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'))
+
+  async function pilihSiswa(s: SiswaDasar | null) {
     onGalat('')
     onOk('')
     setPeminjam(null)
     setInfoSiswa(null)
     setInfoAnggota(null)
     setAktif([])
-    const k = kodePeminjam.trim()
-    if (!k) return
+    if (!s) return
     try {
-      if (tipe === 'siswa') {
-        const s = await cariSiswa(k)
-        if (!s) {
-          onGalat(`Siswa dengan NISN/NIPD "${k}" tidak ditemukan.`)
-          return
-        }
-        if (s.aktif === false) {
-          onGalat(`Siswa ${s.nama} berstatus tidak aktif.`)
-          return
-        }
-        const p = kePeminjamSiswa(s)
-        setInfoSiswa(s)
-        setPeminjam(p)
-        setAktif(await pinjamanAktifPeminjam(p.id))
-        refEks.current?.focus()
-      } else {
-        const a = await cariAnggota(k)
-        if (!a) {
-          onGalat(`Anggota "${k}" tidak ditemukan.`)
-          return
-        }
-        if (a.aktif === false) {
-          onGalat(`Anggota ${a.nama} berstatus tidak aktif.`)
-          return
-        }
-        const p = kePeminjamAnggota(a)
-        setInfoAnggota(a)
-        setPeminjam(p)
-        setAktif(await pinjamanAktifPeminjam(p.id))
-        refEks.current?.focus()
-      }
+      const p = kePeminjamSiswa(s)
+      setInfoSiswa(s)
+      setPeminjam(p)
+      setAktif(await pinjamanAktifPeminjam(p.id))
+      refEks.current?.focus()
     } catch (e) {
       const kode = (e as { code?: string })?.code
-      onGalat(kode === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal mencari peminjam.')
+      onGalat(kode === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal memuat data peminjam.')
     }
-  }, [kodePeminjam, tipe, onGalat, onOk])
+  }
+
+  async function pilihAnggota(id: string) {
+    onGalat('')
+    onOk('')
+    setAnggotaId(id)
+    setPeminjam(null)
+    setInfoSiswa(null)
+    setInfoAnggota(null)
+    setAktif([])
+    if (!id) return
+    const a = anggotaAktif.find((x) => x.id === id)
+    if (!a) {
+      onGalat('Anggota tidak ditemukan.')
+      return
+    }
+    try {
+      const p = kePeminjamAnggota(a)
+      setInfoAnggota(a)
+      setPeminjam(p)
+      setAktif(await pinjamanAktifPeminjam(p.id))
+      refEks.current?.focus()
+    } catch (e) {
+      const kode = (e as { code?: string })?.code
+      onGalat(kode === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal memuat data anggota.')
+    }
+  }
 
   async function lakukanPinjam() {
     if (!peminjam || !aturan) return
@@ -221,38 +225,53 @@ function ModePinjam({
     <div className="space-y-4">
       <div className="card-soft space-y-4 p-4">
         <div className="flex gap-2">
-          <button type="button" className={tipe === 'siswa' ? btnPrimary : btnGhost} onClick={() => setTipe('siswa')}>
+          <button
+            type="button"
+            className={tipe === 'siswa' ? btnPrimary : btnGhost}
+            onClick={() => {
+              setTipe('siswa')
+              setPeminjam(null)
+              setInfoSiswa(null)
+              setInfoAnggota(null)
+              setAktif([])
+              setAnggotaId('')
+            }}
+          >
             Siswa
           </button>
           <button
             type="button"
             className={tipe === 'anggota' ? btnPrimary : btnGhost}
-            onClick={() => setTipe('anggota')}
+            onClick={() => {
+              setTipe('anggota')
+              setPeminjam(null)
+              setInfoSiswa(null)
+              setInfoAnggota(null)
+              setAktif([])
+            }}
           >
             Anggota
           </button>
         </div>
-        <Field
-          label={tipe === 'siswa' ? 'NISN (atau NIPD)' : 'ID anggota'}
-          hint={tipe === 'siswa' ? 'Pindai kartu anggota atau ketik NISN, lalu Enter.' : 'Ketik ID anggota, lalu Enter.'}
-        >
-          <input
-            className={inputCls}
-            value={kodePeminjam}
-            autoFocus
-            onChange={(e) => setKodePeminjam(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                void muatPeminjam()
-              }
-            }}
-            placeholder={tipe === 'siswa' ? 'NISN' : 'ID anggota'}
-          />
-        </Field>
-        <button type="button" className={btnGhost} onClick={() => void muatPeminjam()}>
-          Cari peminjam
-        </button>
+
+        {tipe === 'siswa' ? (
+          <PilihSiswaAktif nilai={infoSiswa} onPilih={(s) => void pilihSiswa(s)} />
+        ) : (
+          <Field label="Nama anggota" hint="Guru, karyawan, atau kelas yang sudah didaftarkan di menu Anggota.">
+            <select
+              className={inputCls}
+              value={anggotaId}
+              onChange={(e) => void pilihAnggota(e.target.value)}
+            >
+              <option value="">— Pilih anggota —</option>
+              {anggotaAktif.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.nama}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
 
         {peminjam && (
           <div className="rounded-lg border border-border bg-surface-2 p-3 text-sm">
@@ -592,28 +611,19 @@ function DaftarPinjaman({
                   {p.peminjam.tipe === 'siswa' && p.peminjam.kelas ? ` (${p.peminjam.kelas})` : ''}
                   {p.peminjam.tipe === 'siswa' ? ` · NISN ${p.peminjam.id}` : ''}
                 </div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
-                  <span>Pinjam {formatTanggal(p.tglPinjam)}</span>
-                  <span>· tempo {formatTanggal(p.jatuhTempo)}</span>
-                  {p.jumlahPerpanjang > 0 && <span>· perpanjang {p.jumlahPerpanjang}×</span>}
-                  {telat && <Badge>Terlambat</Badge>}
+                <div className="mt-0.5 text-xs text-muted">
+                  Pinjam {formatTanggal(p.tglPinjam)} · jatuh tempo {formatTanggal(p.jatuhTempo)}
+                  {telat && ' (terlambat)'}
+                  {p.jumlahPerpanjang > 0 && ` · diperpanjang ${p.jumlahPerpanjang}×`}
                 </div>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {aturan && p.jumlahPerpanjang < aturan.maksPerpanjang && (
-                  <button
-                    type="button"
-                    className="text-xs font-medium text-muh-600 hover:underline"
-                    onClick={() => void onPerpanjang(p)}
-                  >
+                  <button type="button" className="text-xs font-medium text-muh-600 hover:underline" onClick={() => void onPerpanjang(p)}>
                     Perpanjang
                   </button>
                 )}
-                <button
-                  type="button"
-                  className="text-xs font-medium text-muh-600 hover:underline"
-                  onClick={() => void onKembali(p)}
-                >
+                <button type="button" className="text-xs font-medium text-muh-600 hover:underline" onClick={() => void onKembali(p)}>
                   Kembalikan
                 </button>
               </div>
