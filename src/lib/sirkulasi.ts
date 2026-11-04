@@ -109,6 +109,20 @@ export async function daftarPinjamanAktif(batas = 300): Promise<Peminjaman[]> {
     .sort((a, b) => a.jatuhTempo.toMillis() - b.jatuhTempo.toMillis())
 }
 
+/** Riwayat pengembalian (status dikembalikan), terbaru dulu. Batas 100. */
+export async function daftarRiwayatKembali(batas = 100): Promise<Peminjaman[]> {
+  const snap = await getDocs(
+    query(collection(db, 'perpus_peminjaman'), where('status', '==', 'dikembalikan'), limit(batas)),
+  )
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as unknown as Peminjaman)
+    .sort((a, b) => {
+      const ta = a.tglKembali?.toMillis() ?? 0
+      const tb = b.tglKembali?.toMillis() ?? 0
+      return tb - ta
+    })
+}
+
 /** ID yang disimpan di peminjaman: NISN bila ada, selain itu ID dokumen siswa (NIPD). */
 export function idPeminjamSiswa(s: SiswaDasar): string {
   return (s.nisn && s.nisn.trim()) || s.id

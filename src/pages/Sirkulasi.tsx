@@ -6,6 +6,7 @@ import {
   ambilAturan,
   ambilEksemplar,
   daftarPinjamanAktif,
+  daftarRiwayatKembali,
   formatTanggal,
   kembalikan,
   kePeminjamAnggota,
@@ -22,7 +23,7 @@ import PilihSiswaAktif from '../components/PilihSiswaAktif'
 import CariEksemplar from '../components/CariEksemplar'
 import { Badge, Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
-type Mode = 'pinjam' | 'kembali' | 'daftar'
+type Mode = 'pinjam' | 'kembali' | 'daftar' | 'riwayat'
 
 const NAMA_KONDISI: Record<KondisiBuku, string> = {
   baik: 'Baik',
@@ -54,6 +55,7 @@ export default function Sirkulasi() {
         {(
           [
             ['daftar', 'Semua pinjaman'],
+            ['riwayat', 'Riwayat kembali'],
             ['pinjam', 'Pinjam baru'],
             ['kembali', 'Kembalikan'],
           ] as const
@@ -115,6 +117,7 @@ export default function Sirkulasi() {
           onLog={(t, id) => void catat(profil, t, 'perpus_peminjaman', id)}
         />
       )}
+      {mode === 'riwayat' && <ModeRiwayat onGalat={setGalat} />}
     </div>
   )
 }
@@ -550,6 +553,62 @@ function ModeDaftar({
           }
         }}
       />
+    </div>
+  )
+}
+
+function ModeRiwayat({ onGalat }: { onGalat: (s: string) => void }) {
+  const [data, setData] = useState<Peminjaman[]>([])
+  const [memuat, setMemuat] = useState(true)
+
+  const muat = useCallback(async () => {
+    setMemuat(true)
+    try {
+      setData(await daftarRiwayatKembali())
+    } catch (e) {
+      const kode = (e as { code?: string })?.code
+      onGalat(kode === 'permission-denied' ? 'Anda tidak memiliki akses.' : 'Gagal memuat riwayat.')
+    }
+    setMemuat(false)
+  }, [onGalat])
+
+  useEffect(() => {
+    void muat()
+  }, [muat])
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <button type="button" className={btnGhost} onClick={() => void muat()} disabled={memuat}>
+          {memuat ? 'Memuat…' : 'Muat ulang'}
+        </button>
+        <span className="text-xs text-muted">{data.length} pengembalian</span>
+      </div>
+      {data.length === 0 ? (
+        <div className="card-soft p-4 text-sm text-muted">Belum ada riwayat pengembalian.</div>
+      ) : (
+        <div className="card-soft">
+          <div className="border-b border-border px-4 py-3 font-semibold">Riwayat pengembalian</div>
+          <ul className="divide-y divide-border">
+            {data.map((p) => (
+              <li key={p.id} className="px-4 py-3 text-sm">
+                <div className="font-medium">{p.judul}</div>
+                <div className="text-muted">
+                  <span className="font-mono">{p.eksemplarId}</span>
+                  {' · '}
+                  {p.peminjam.nama}
+                  {p.peminjam.kelas ? ` (${p.peminjam.kelas})` : ''}
+                  {p.peminjam.tipe === 'siswa' ? ` · NISN ${p.peminjam.id}` : ''}
+                </div>
+                <div className="mt-0.5 text-xs text-muted">
+                  Pinjam {formatTanggal(p.tglPinjam)} · kembali {formatTanggal(p.tglKembali)}
+                  {p.kondisiKembali && ` · kondisi ${p.kondisiKembali}`}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
