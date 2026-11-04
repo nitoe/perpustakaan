@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Promise.withResolvers — Safari < 17.4
-if (typeof Promise.withResolvers !== 'function') {
+if (typeof (Promise as any).withResolvers !== 'function') {
   ;(Promise as any).withResolvers = function withResolvers<T = unknown>() {
     let resolve!: (value: T | PromiseLike<T>) => void
     let reject!: (reason?: unknown) => void
@@ -25,7 +25,7 @@ if (typeof (Promise as any).try !== 'function') {
 }
 
 // Map.prototype.getOrInsertComputed — Baseline 2026; belum di banyak HP
-if (typeof Map.prototype.getOrInsertComputed !== 'function') {
+if (typeof (Map.prototype as any).getOrInsertComputed !== 'function') {
   Object.defineProperty(Map.prototype, 'getOrInsertComputed', {
     value(this: Map<unknown, unknown>, key: unknown, callbackFn: (k: unknown) => unknown) {
       if (this.has(key)) return this.get(key)
