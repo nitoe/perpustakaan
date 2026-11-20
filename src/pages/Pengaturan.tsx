@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, getDocs, updateDoc, serverTimestamp, deleteField } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../lib/firebase'
 import { catat } from '../lib/data'
@@ -9,9 +9,20 @@ import { NAMA_PERAN } from '../lib/peran'
 import { KELAS_DDC } from '../lib/ddc'
 import type { Aturan } from '../lib/tipe'
 import { ATURAN_BAWAAN } from '../lib/tipe'
+import type { AppUser, PeranPerpus } from '../types/user'
 import { Badge, Field, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
-type Tab = 'akun' | 'aturan' | 'klasifikasi' | 'bantuan'
+type Tab = 'akun' | 'peran' | 'aturan' | 'klasifikasi' | 'bantuan'
+
+const ROLE_GURU = ['guru', 'guru_tahsin_tahfizh', 'guru_akademik']
+
+/** Opsi yang boleh diset admin lewat UI (bukan role Penilaian). */
+const OPSI_PERAN: { value: '' | PeranPerpus; label: string }[] = [
+  { value: '', label: 'Default (Guru / Karyawan)' },
+  { value: 'pustakawan', label: 'Pustakawan' },
+  { value: 'pimpinan', label: 'Pimpinan' },
+  { value: 'guru', label: 'Guru / Karyawan (eksplisit)' },
+]
 
 export default function Pengaturan() {
   const { peran } = useAuth()
@@ -19,6 +30,7 @@ export default function Pengaturan() {
 
   const tabs: { id: Tab; label: string; hanyaAdmin?: boolean }[] = [
     { id: 'akun', label: 'Akun' },
+    { id: 'peran', label: 'Peran staf', hanyaAdmin: true },
     { id: 'aturan', label: 'Aturan pinjam', hanyaAdmin: true },
     { id: 'klasifikasi', label: 'Klasifikasi DDC' },
     { id: 'bantuan', label: 'Bantuan input' },
@@ -26,7 +38,7 @@ export default function Pengaturan() {
 
   return (
     <div className="w-full">
-      <PageHeader judul="Pengaturan" keterangan="Akun, aturan pinjam, dan referensi klasifikasi." />
+      <PageHeader judul="Pengaturan" keterangan="Akun, peran staf, aturan pinjam, dan referensi klasifikasi." />
 
       <div className="mb-4 flex flex-wrap gap-2">
         {tabs
@@ -44,6 +56,7 @@ export default function Pengaturan() {
       </div>
 
       {tab === 'akun' && <TabAkun />}
+      {tab === 'peran' && peran === 'admin' && <TabPeranStaf />}
       {tab === 'aturan' && peran === 'admin' && <TabAturan />}
       {tab === 'klasifikasi' && <TabKlasifikasi />}
       {tab === 'bantuan' && <TabBantuan />}
@@ -131,7 +144,9 @@ function TabAkun() {
         <div>
           <span className="text-muted">Peran perpustakaan</span>
           <div className="mt-1">{peran ? <Badge>{NAMA_PERAN[peran]}</Badge> : '—'}</div>
-          <p className="mt-1 text-xs text-muted">Peran hanya bisa diubah admin lewat Firestore (field peranPerpus).</p>
+          <p className="mt-1 text-xs text-muted">
+            Admin dapat mengubah peran staf lewat tab <strong>Peran staf</strong> di Pengaturan.
+          </p>
         </div>
       </div>
 
@@ -181,6 +196,202 @@ function TabAkun() {
           Ubah sandi
         </button>
       </form>
+    </div>
+  )
+}
+
+/** Daftar staf yang relevan untuk peran perpustakaan (guru + yang sudah punya peranPerpus). */
+function TabPeranStaf() {
+  const { profil, user } = useAuth()
+  const [daftar, setDaftar] = useState<AppUser[]>([])
+  const [memuat, setMemuat] = useState(true)
+  const [galat, setGalat] = useState('')
+  const [ok, setOk] = useState('')
+  const [cari, setCari] = useState('')
+  const [prosesUid, setProsesUid] = useState<string | null>(null)
+
+  async function muat() {
+    setMemuat(true)
+    setGalat('')
+    try {
+      const snap = await getDocs(collection(db, 'users'))
+      const list: AppUser[] = []
+      snap.forEach((s) => {
+        const d = s.data()
+        const role = (d.role as string) || ''
+        const peranPerpus = d.peranPerpus as PeranPerpus | undefined
+        // Tampilkan: admin Penilaian, semua jenis guru, atau yang sudah punya peranPerpus
+        if (
+          role === 'admin' ||
+          ROLE_GURU.includes(role) ||
+          (peranPerpus && ['admin', 'pustakawan', 'pimpinan', 'guru'].includes(peranPerpus))
+        ) {
+          list.push({
+            uid: s.id,
+            email: (d.email as string) || '',
+            nama: (d.nama as string) || '',
+            gelar: (d.gelar as string) || undefined,
+            role,
+            peranPerpus,
+            aktif: typeof d.aktif === 'boolean' ? d.aktif : undefined,
+          })
+        }
+      })
+      list.sort((a, b) => a.nama.localeCompare(b.nama, 'id'))
+      setDaftar(list)
+    } catch {
+      setGalat('Gagal memuat daftar pengguna. Pastikan Anda login sebagai admin Penilaian.')
+    }
+    setMemuat(false)
+  }
+
+  useEffect(() => {
+    void muat()
+  }, [])
+
+  const terfilter = useMemo(() => {
+    const q = cari.trim().toLowerCase()
+    if (!q) return daftar
+    return daftar.filter(
+      (u) =>
+        u.nama.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        (u.role || '').toLowerCase().includes(q),
+    )
+  }, [daftar, cari])
+
+  async function setPeran(u: AppUser, nilai: '' | PeranPerpus) {
+    if (u.role === 'admin' && nilai !== '') {
+      // Admin Penilaian selalu admin perpustakaan; field tidak diperlukan
+      setOk('Akun admin Penilaian otomatis menjadi Admin Perpustakaan. Field peranPerpus tidak diubah.')
+      return
+    }
+    setProsesUid(u.uid)
+    setGalat('')
+    setOk('')
+    try {
+      const ref = doc(db, 'users', u.uid)
+      if (nilai === '') {
+        await updateDoc(ref, {
+          peranPerpus: deleteField(),
+          updatedAt: serverTimestamp(),
+        })
+      } else {
+        await updateDoc(ref, {
+          peranPerpus: nilai,
+          updatedAt: serverTimestamp(),
+        })
+      }
+      void catat(profil, `ubah peranPerpus → ${nilai || 'default'}`, 'users', u.uid)
+      setDaftar((prev) =>
+        prev.map((x) =>
+          x.uid === u.uid
+            ? { ...x, peranPerpus: nilai === '' ? undefined : nilai }
+            : x,
+        ),
+      )
+      setOk(
+        nilai === 'pustakawan'
+          ? `${u.nama} sekarang Pustakawan (akses kelola hampir sama dengan admin).`
+          : nilai === ''
+            ? `Peran ${u.nama} dikembalikan ke default (Guru / Karyawan).`
+            : `Peran ${u.nama} diubah menjadi ${NAMA_PERAN[nilai]}.`,
+      )
+    } catch {
+      setGalat('Gagal menyimpan peran. Hanya admin Penilaian yang boleh mengubah.')
+    }
+    setProsesUid(null)
+  }
+
+  function labelPeranEfektif(u: AppUser): string {
+    if (u.role === 'admin') return NAMA_PERAN.admin
+    if (u.peranPerpus && NAMA_PERAN[u.peranPerpus]) return NAMA_PERAN[u.peranPerpus]
+    if (u.role && ROLE_GURU.includes(u.role)) return NAMA_PERAN.guru
+    return '—'
+  }
+
+  return (
+    <div className="space-y-4">
+      <Notice>
+        Ubah status guru/karyawan menjadi <strong>Pustakawan</strong> agar mereka dapat mengelola katalog, sirkulasi,
+        izin siswa, impor, label, dll. (hampir sama dengan admin). <strong>Pimpinan</strong> hanya melihat laporan.
+        Admin Penilaian otomatis menjadi Admin Perpustakaan.
+      </Notice>
+
+      {galat && <Notice tipe="error">{galat}</Notice>}
+      {ok && <Notice>{ok}</Notice>}
+
+      <div className="card-soft p-4">
+        <input
+          className={inputCls}
+          placeholder="Cari nama atau email…"
+          value={cari}
+          onChange={(e) => setCari(e.target.value)}
+          aria-label="Cari staf"
+        />
+      </div>
+
+      {memuat ? (
+        <div className="text-sm text-muted">Memuat daftar staf…</div>
+      ) : terfilter.length === 0 ? (
+        <Notice>Tidak ada staf yang cocok.</Notice>
+      ) : (
+        <ul className="card-soft divide-y divide-border">
+          {terfilter.map((u) => {
+            const isAdminPenilaian = u.role === 'admin'
+            const current = u.peranPerpus ?? ''
+            const isSaya = u.uid === user?.uid
+            return (
+              <li key={u.uid} className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <div className="font-medium">
+                    {u.nama}
+                    {u.gelar ? ` ${u.gelar}` : ''}
+                    {isSaya && <span className="ml-2 text-xs text-muted">(Anda)</span>}
+                    {u.aktif === false && (
+                      <span className="ml-2">
+                        <Badge>Nonaktif</Badge>
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-0.5 text-muted">
+                    {u.email || '—'}
+                    {u.role ? ` · role: ${u.role}` : ''}
+                  </div>
+                  <div className="mt-1">
+                    <Badge>{labelPeranEfektif(u)}</Badge>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {isAdminPenilaian ? (
+                    <span className="text-xs text-muted">Otomatis admin</span>
+                  ) : (
+                    <select
+                      className={inputCls}
+                      style={{ minWidth: '11rem' }}
+                      value={current}
+                      disabled={prosesUid === u.uid}
+                      onChange={(e) => void setPeran(u, e.target.value as '' | PeranPerpus)}
+                      aria-label={`Peran ${u.nama}`}
+                    >
+                      {OPSI_PERAN.map((o) => (
+                        <option key={o.value || 'default'} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+      <p className="text-xs text-muted">
+        Perubahan berlaku segera setelah pengguna memuat ulang halaman atau login ulang. Rules Firestore tetap
+        menegakkan izin; tampilan menu mengikuti peran efektif.
+      </p>
     </div>
   )
 }
